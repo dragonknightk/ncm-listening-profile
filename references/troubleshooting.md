@@ -12,7 +12,7 @@ log/collection_diagnostics.json
 
 在哪个 Skill 实例被调用，就修复哪个 Skill 实例：
 
-- 项目内 Skill：修项目内 `.codex/skills/ncm-listening-profile`
+- 项目内 Skill：修当前仓库或项目中的 Skill 根目录
 - 全局 Skill：修全局 Skill 目录
 
 不要把修复路径写死成某台机器上的项目路径。

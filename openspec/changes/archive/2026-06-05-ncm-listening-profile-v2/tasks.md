@@ -1,6 +1,6 @@
 ## 1. Skill Documentation And Workflow
 
-- [x] 1.1 Rewrite `.codex/skills/ncm-listening-profile/SKILL.md` in Chinese-first language with the v2 collection-only workflow.
+- [x] 1.1 Rewrite the project-local `ncm-listening-profile` `SKILL.md` in Chinese-first language with the v2 collection-only workflow.
 - [x] 1.2 Rewrite all Skill reference Markdown files in Chinese-first language while preserving literal commands, paths, JSON keys, and schema field names.
 - [x] 1.3 Update `SKILL.md` so an already-running NetEase Cloud Music process asks the user to choose recollection or an existing run before any collection or analysis action.
 - [x] 1.4 Update `SKILL.md` so playlist listing is mandatory and the user must choose exactly one primary user-created playlist.

@@ -34,7 +34,7 @@ None.
 
 ## Impact
 
-- Updates the project-local `ncm-listening-profile` Skill under `.codex/skills/ncm-listening-profile/`.
+- Updates the project-local `ncm-listening-profile` Skill in its installed Skill root.
 - Updates `SKILL.md` and reference Markdown files to Chinese-first instructions and revised workflow rules.
 - Updates Python output shaping to use slim result fields and parse `durationMs` from `duration`.
 - Updates output writing to include `log/collection_diagnostics.json` and to support failed-attempt log-only run directories.
