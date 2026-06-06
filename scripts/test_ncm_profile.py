@@ -8,7 +8,14 @@ from pathlib import Path
 from typing import Any
 
 from ncm_aggregate import build_aggregate
-from ncm_api import NcmApiError, fetch_api_json, list_created_playlists, public_playlist_choices, resolve_playlist
+from ncm_api import (
+    NcmApiError,
+    fetch_api_json,
+    fetch_listening_record,
+    list_created_playlists,
+    public_playlist_choices,
+    resolve_playlist,
+)
 from ncm_diagnostics import CollectionDiagnostics
 from ncm_outputs import (
     assert_only_expected_output_files,
@@ -80,6 +87,27 @@ def ranking_fixture() -> list[dict[str, Any]]:
     ]
 
 
+def recent_shift_fixture() -> list[dict[str, Any]]:
+    return [
+        {"song": song(101, "Rise A", ["Artist A"], "Album A", 210_000), "playCount": 60},
+        {"song": song(102, "Stable B", ["Artist B"], "Album B", 220_000), "playCount": 50},
+        {"song": song(201, "Recent Only 1", ["Artist R"], "Album R", 230_000), "playCount": 40},
+        {"song": song(202, "Recent Only 2", ["Artist R"], "Album R", 240_000), "playCount": 30},
+        {"song": song(203, "Recent Only 3", ["Artist R"], "Album R", 250_000), "playCount": 20},
+        {"song": song(103, "Drop C", ["Artist C"], "Album C", 260_000), "playCount": 10},
+    ]
+
+
+def all_time_shift_fixture() -> list[dict[str, Any]]:
+    return [
+        {"song": song(103, "Drop C", ["Artist C"], "Album C", 260_000), "playCount": 300},
+        {"song": song(102, "Stable B", ["Artist B"], "Album B", 220_000), "playCount": 250},
+        {"song": song(301, "All Only 1", ["Artist L"], "Album L", 230_000), "playCount": 200},
+        {"song": song(302, "All Only 2", ["Artist L"], "Album L", 240_000), "playCount": 150},
+        {"song": song(101, "Rise A", ["Artist A"], "Album A", 210_000), "playCount": 100},
+    ]
+
+
 def walk_keys(value: Any) -> set[str]:
     keys: set[str] = set()
     if isinstance(value, dict):
@@ -107,6 +135,19 @@ class NcmProfileV3Tests(unittest.TestCase):
         with self.assertRaises(NcmApiError) as raised:
             fetch_api_json(blocked, "/api/user/playlist", {"uid": "42"})
         self.assertEqual(raised.exception.details["status"], 429)
+
+    def test_fetch_listening_record_allows_empty_recent_week_but_rejects_empty_all_time(self) -> None:
+        recent_client = FakeCdpClient([api_payload({"code": 200, "weekData": []})])
+
+        recent_rows, recent_summary = fetch_listening_record(recent_client, "42", "recent_week")
+
+        self.assertEqual(recent_rows, [])
+        self.assertEqual(recent_summary["rowsFound"], 0)
+        self.assertEqual(recent_summary["recordType"], 1)
+
+        all_time_client = FakeCdpClient([api_payload({"code": 200, "allData": []})])
+        with self.assertRaises(NcmApiError):
+            fetch_listening_record(all_time_client, "42", "all_time")
 
     def test_list_created_playlists_filters_current_user_and_keeps_special_types(self) -> None:
         client = FakeCdpClient(
@@ -163,6 +204,7 @@ class NcmProfileV3Tests(unittest.TestCase):
 
     def test_skill_keeps_complete_prompt_suitability_text(self) -> None:
         skill_md = (Path(__file__).resolve().parent.parent / "SKILL.md").read_text(encoding="utf-8")
+        prompt_aggregate_line = "<run_dir>\\aggregate\\aggregate.json，这是从上面数据预先算出的统计和索引，用来快速定位趋势、极端值、重合项和样本；完整事实仍以上面三份 result 为准。"
 
         self.assertIn(
             "适合已经很熟悉和 AI 对话的人，也适合你想保留一点未知感和神秘感的时候。它不给AI太多方向，只把数据交出去，让对方自己靠近、观察和理解你。适合期待更自由、更意外、更像一次重新相识的分析。",
@@ -172,6 +214,28 @@ class NcmProfileV3Tests(unittest.TestCase):
             "适合你希望被认真看见的时候。它会引导AI慢下来，从长期偏好、近期状态、审美意象、生活节奏和细小异常里理解你，而不是只给出一份音乐品味总结。适合想要更稳定、更细腻、更有温度回答的场景。",
             skill_md,
         )
+        self.assertEqual(skill_md.count(prompt_aggregate_line), 2)
+
+        minimal_prompt = skill_md.split("## 极简版 Prompt", 1)[1].split("## 引导版 Prompt", 1)[0]
+        guided_prompt = skill_md.split("## 引导版 Prompt", 1)[1].split("## 运行规则", 1)[0]
+        for prompt in (minimal_prompt, guided_prompt):
+            aggregate_index = prompt.index("<run_dir>\\aggregate\\aggregate.json")
+            self.assertLess(prompt.index("<run_dir>\\result\\primary_playlist.jsonl"), aggregate_index)
+            self.assertLess(prompt.index("<run_dir>\\result\\ranking_all_time.jsonl"), aggregate_index)
+            self.assertLess(prompt.index("<run_dir>\\result\\ranking_recent_week.jsonl"), aggregate_index)
+
+    def test_readme_opens_with_concrete_user_owned_framing(self) -> None:
+        readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "你的网易云里藏着一份很长的自我备忘录：主歌单里留下的歌，最近一周反复回来的歌，所有时间里一直没有退场的歌。",
+            readme,
+        )
+        self.assertIn(
+            "`ncm-listening-profile` 会采集你确认的主歌单、最近一周听歌排行和所有时间听歌排行，生成本地数据文件和可复制给 AI 的分析 prompt。",
+            readme,
+        )
+        self.assertIn("它把材料放到你手里，也把解释权留给你。最终要不要分析、交给谁分析、分享哪些文件，都由你决定。", readme)
 
     def test_primary_and_ranking_rows_are_shaped_from_api_without_extra_result_fields(self) -> None:
         primary_raw, primary_result = shape_primary_rows(playlist_detail_fixture())
@@ -240,6 +304,58 @@ class NcmProfileV3Tests(unittest.TestCase):
             with (run_dir / "aggregate" / "aggregate.json").open("r", encoding="utf-8") as handle:
                 self.assertEqual(json.load(handle)["counts"]["primaryPlaylistRows"], 2)
 
+    def test_empty_recent_week_run_writes_outputs_diagnostics_and_zero_aggregate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            skill_dir = Path(temp_dir)
+            run_dir = create_run_dirs(skill_dir, "20260604-120000")
+            diagnostics = CollectionDiagnostics(run_dir, skill_dir, 9222)
+            primary_raw, primary_result = shape_primary_rows(playlist_detail_fixture())
+            recent_raw, recent_result = shape_ranking_rows("ranking_recent_week", [])
+            all_raw, all_result = shape_ranking_rows("ranking_all_time", ranking_fixture())
+            diagnostics.phase_ok(
+                "result_shaping",
+                primaryRows=len(primary_result),
+                recentWeekRows=len(recent_result),
+                allTimeRows=len(all_result),
+                recentWeekPlayCountRows=0,
+                recentWeekPlayCountMissingRows=0,
+            )
+            aggregate = build_aggregate(primary_raw, primary_result, recent_raw, recent_result, all_raw, all_result)
+            diagnostics.phase_ok("aggregate", aggregateSchemaVersion=aggregate.get("schemaVersion"))
+
+            write_run(run_dir, primary_raw, primary_result, recent_raw, recent_result, all_raw, all_result, aggregate)
+            diagnostics.set_quality(primaryRows=len(primary_result), recentWeekRows=0, allTimeRows=len(all_result), collectionSource="api")
+            diagnostics.phase_ok("validation")
+
+            assert_only_expected_output_files(run_dir)
+            self.assertEqual((run_dir / "raw" / "ranking_recent_week.jsonl").read_text(encoding="utf-8"), "")
+            self.assertEqual((run_dir / "result" / "ranking_recent_week.jsonl").read_text(encoding="utf-8"), "")
+            with (run_dir / "csv" / "ranking_recent_week.csv").open("r", encoding="utf-8-sig", newline="") as handle:
+                reader = csv.DictReader(handle)
+                self.assertEqual(reader.fieldnames, ["rank", "title", "artistNames", "playCount"])
+                self.assertEqual(list(reader), [])
+
+            self.assertEqual(aggregate["counts"]["rankingRecentWeekRows"], 0)
+            self.assertEqual(aggregate["rankingStats"]["recentWeekTotalPlayCount"], 0)
+            self.assertEqual(aggregate["rankingStats"]["recentWeekTop1PlayCountShare"], 0)
+            self.assertEqual(aggregate["rankingStats"]["recentWeekTop3PlayCountShare"], 0)
+            self.assertEqual(aggregate["rankingStats"]["recentWeekTop10PlayCountShare"], 0)
+            self.assertEqual(aggregate["rankingStats"]["top20RecentWeekTracksByPlayCount"], [])
+            self.assertEqual(aggregate["rankingStats"]["bottom20RecentWeekTracksByPlayCount"], [])
+            stats = aggregate["recentLongTermShiftStats"]
+            self.assertEqual(stats["recentWeekTop20TracksInAllTimeTop100Count"], 0)
+            self.assertEqual(stats["recentWeekTop20TracksInAllTimeTop100Share"], 0)
+            self.assertEqual(stats["allTimeTop20TracksInRecentWeekTop100Count"], 0)
+            self.assertEqual(stats["allTimeTop20TracksInRecentWeekTop100Share"], 0)
+            self.assertIsNone(stats["recentWeekAllTimeOverlapMedianAbsoluteRankDelta"])
+            self.assertEqual(stats["top10RecentWeekAllTimeOverlapByRankRise"], [])
+            self.assertEqual(stats["top10RecentWeekAllTimeOverlapByRankDrop"], [])
+
+            diagnostics_data = json.loads((run_dir / "log" / "collection_diagnostics.json").read_text(encoding="utf-8"))
+            self.assertEqual(diagnostics_data["quality"]["recentWeekRows"], 0)
+            self.assertNotIn("failedPhase", diagnostics_data)
+            self.assertNotEqual(diagnostics_data["phases"].get("ranking_recent_week_api", {}).get("status"), "failed")
+
     def test_aggregate_contains_neutral_metrics_and_explicit_index_names(self) -> None:
         primary_raw, primary_result = shape_primary_rows(playlist_detail_fixture())
         recent_raw, recent_result = shape_ranking_rows("ranking_recent_week", ranking_fixture())
@@ -256,9 +372,52 @@ class NcmProfileV3Tests(unittest.TestCase):
         self.assertIn("top30ArtistsByPrimaryTrackCount", aggregate["artistStats"])
         self.assertIn("bottom20RecentWeekTracksByPlayCount", aggregate["rankingStats"])
         self.assertIn("top50PrimaryRecentWeekOverlapByRecentWeekPlayCount", aggregate["overlapStats"])
+        self.assertIn("recentLongTermShiftStats", aggregate)
         serialized = json.dumps(aggregate, ensure_ascii=False)
         self.assertNotIn("evidenceStrength", serialized)
         self.assertNotIn("profileConclusion", serialized)
+
+    def test_recent_long_term_shift_stats_cover_overlap_share_and_rank_delta_samples(self) -> None:
+        primary_raw, primary_result = shape_primary_rows(playlist_detail_fixture())
+        recent_raw, recent_result = shape_ranking_rows("ranking_recent_week", recent_shift_fixture())
+        all_raw, all_result = shape_ranking_rows("ranking_all_time", all_time_shift_fixture())
+
+        aggregate = build_aggregate(primary_raw, primary_result, recent_raw, recent_result, all_raw, all_result)
+        stats = aggregate["recentLongTermShiftStats"]
+
+        self.assertEqual(stats["recentWeekTop20TracksInAllTimeTop100Count"], 3)
+        self.assertAlmostEqual(stats["recentWeekTop20TracksInAllTimeTop100Share"], 0.5)
+        self.assertEqual(stats["allTimeTop20TracksInRecentWeekTop100Count"], 3)
+        self.assertAlmostEqual(stats["allTimeTop20TracksInRecentWeekTop100Share"], 0.6)
+        self.assertEqual(stats["recentWeekAllTimeOverlapMedianAbsoluteRankDelta"], 4)
+
+        rise = stats["top10RecentWeekAllTimeOverlapByRankRise"][0]
+        self.assertEqual(
+            {key: rise[key] for key in ("title", "artistNames", "recentWeekRank", "allTimeRank", "rankDelta", "recentWeekPlayCount", "allTimePlayCount")},
+            {
+                "title": "Rise A",
+                "artistNames": "Artist A",
+                "recentWeekRank": 1,
+                "allTimeRank": 5,
+                "rankDelta": 4,
+                "recentWeekPlayCount": 60,
+                "allTimePlayCount": 100,
+            },
+        )
+
+        drop = stats["top10RecentWeekAllTimeOverlapByRankDrop"][0]
+        self.assertEqual(
+            {key: drop[key] for key in ("title", "artistNames", "recentWeekRank", "allTimeRank", "rankDelta", "recentWeekPlayCount", "allTimePlayCount")},
+            {
+                "title": "Drop C",
+                "artistNames": "Artist C",
+                "recentWeekRank": 6,
+                "allTimeRank": 1,
+                "rankDelta": 5,
+                "recentWeekPlayCount": 10,
+                "allTimePlayCount": 300,
+            },
+        )
 
     def test_diagnostics_records_api_failure_without_sensitive_details(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

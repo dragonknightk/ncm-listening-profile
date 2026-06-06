@@ -235,7 +235,7 @@ def fetch_listening_record(client: CdpClient, user_id: str, period: str) -> tupl
         raise ValueError(f"Unsupported listening record period: {period}")
     result = fetch_api_json(client, "/api/v1/play/record", {"uid": user_id, "type": record_type})
     rows = result.data.get(key)
-    if not isinstance(rows, list) or not rows:
+    if not isinstance(rows, list) or (period == "all_time" and not rows):
         raise NcmApiError(f"Listening record API did not return {key}[].", result.summary)
     summary = dict(result.summary)
     summary.update({"rowsFound": len(rows), "recordType": record_type})

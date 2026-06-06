@@ -328,7 +328,8 @@ The Skill SHALL keep both reusable analysis prompts and their user-facing suitab
 
 #### Scenario: Minimal prompt is shown
 - **WHEN** the Skill reports final collection output
-- **THEN** it includes a minimal prompt that references `aggregate/aggregate.json`, `result/primary_playlist.jsonl`, `result/ranking_all_time.jsonl`, and `result/ranking_recent_week.jsonl`
+- **THEN** it includes a minimal prompt that references `result/primary_playlist.jsonl`, `result/ranking_all_time.jsonl`, `result/ranking_recent_week.jsonl`, and then `aggregate/aggregate.json` in that order
+- **AND** the `aggregate/aggregate.json` line says it is computed from the preceding data as precomputed statistics and indexes for locating trends, extremes, overlaps, and samples, while complete facts remain in the three result files
 
 #### Scenario: Minimal prompt suitability is shown
 - **WHEN** the minimal prompt is shown
@@ -336,7 +337,9 @@ The Skill SHALL keep both reusable analysis prompts and their user-facing suitab
 
 #### Scenario: Guided prompt is shown
 - **WHEN** the Skill reports final collection output
-- **THEN** it includes a guided prompt that asks AI to use long-term preference, recent state, aesthetic imagery, life rhythm, and small anomalies to build an evidenced, detailed, and warm profile
+- **THEN** it includes a guided prompt that references `result/primary_playlist.jsonl`, `result/ranking_all_time.jsonl`, `result/ranking_recent_week.jsonl`, and then `aggregate/aggregate.json` in that order
+- **AND** the `aggregate/aggregate.json` line says it is computed from the preceding data as precomputed statistics and indexes for locating trends, extremes, overlaps, and samples, while complete facts remain in the three result files
+- **AND** it asks AI to use long-term preference, recent state, aesthetic imagery, life rhythm, and small anomalies to build an evidenced, detailed, and warm profile
 
 #### Scenario: Guided prompt suitability is shown
 - **WHEN** the guided prompt is shown
@@ -426,18 +429,28 @@ The Skill SHALL use `/api/v6/playlist/detail` as the source of primary playlist 
 - **THEN** the Skill fails the primary playlist phase and writes diagnostics
 
 ### Requirement: API listening records provide ranking facts
-The Skill SHALL use `/api/v1/play/record` as the source of recent-week and all-time listening ranking rows.
+The Skill SHALL use `/api/v1/play/record` as the source of recent-week and all-time listening ranking rows, and SHALL treat an empty recent-week ranking as a valid no-recent-listening state.
 
 #### Scenario: Recent-week ranking API succeeds
-- **WHEN** `/api/v1/play/record?type=1` returns `weekData[]`
+- **WHEN** `/api/v1/play/record?type=1` returns non-empty `weekData[]`
 - **THEN** the Skill emits `ranking_recent_week` result rows from that array
 
+#### Scenario: Recent-week ranking is empty
+- **WHEN** `/api/v1/play/record?type=1` returns `weekData=[]`
+- **THEN** the Skill treats the recent-week ranking as a successful dataset with 0 rows
+- **AND** it continues collecting all-time ranking, shaping outputs, building aggregate, and writing the run
+- **AND** diagnostics record `recentWeekRows=0`
+
 #### Scenario: All-time ranking API succeeds
-- **WHEN** `/api/v1/play/record?type=0` returns `allData[]`
+- **WHEN** `/api/v1/play/record?type=0` returns non-empty `allData[]`
 - **THEN** the Skill emits `ranking_all_time` result rows from that array
 
+#### Scenario: All-time ranking is empty
+- **WHEN** `/api/v1/play/record?type=0` returns `allData=[]`
+- **THEN** the Skill fails the all-time ranking phase and writes diagnostics
+
 #### Scenario: Ranking API shape is invalid
-- **WHEN** a listening record response lacks required ranking data or required song fields
+- **WHEN** a listening record response lacks the required ranking array or required song fields
 - **THEN** the Skill fails the corresponding ranking phase and writes diagnostics
 
 ### Requirement: DurationMs is derived from API duration
@@ -471,7 +484,7 @@ The Skill SHALL write `aggregate/aggregate.json` for successful runs with precom
 - **THEN** `result/*.jsonl` remains the complete analysis fact source instead of `aggregate/aggregate.json`
 
 ### Requirement: Aggregate calculation covers agreed metrics
-The Skill SHALL compute the agreed v3 aggregate metric groups from result data and required raw identifiers.
+The Skill SHALL compute the agreed v5 aggregate metric groups from result data and required raw identifiers.
 
 #### Scenario: Counts are computed
 - **WHEN** aggregate is built
@@ -500,3 +513,41 @@ The Skill SHALL compute the agreed v3 aggregate metric groups from result data a
 #### Scenario: Text metrics are computed
 - **WHEN** aggregate is built
 - **THEN** it records title, album, and artist term frequencies plus title and album character-type statistics
+
+#### Scenario: Recent-long-term shift metrics are computed
+- **WHEN** aggregate is built
+- **THEN** it records `recentLongTermShiftStats.recentWeekTop20TracksInAllTimeTop100Count`
+- **AND** it records `recentLongTermShiftStats.recentWeekTop20TracksInAllTimeTop100Share`
+- **AND** it records `recentLongTermShiftStats.allTimeTop20TracksInRecentWeekTop100Count`
+- **AND** it records `recentLongTermShiftStats.allTimeTop20TracksInRecentWeekTop100Share`
+- **AND** it records `recentLongTermShiftStats.recentWeekAllTimeOverlapMedianAbsoluteRankDelta`
+- **AND** it records `recentLongTermShiftStats.top10RecentWeekAllTimeOverlapByRankRise`
+- **AND** it records `recentLongTermShiftStats.top10RecentWeekAllTimeOverlapByRankDrop`
+
+#### Scenario: Recent-week ranking is empty during aggregate
+- **WHEN** aggregate is built with 0 recent-week ranking rows and non-empty all-time ranking rows
+- **THEN** `rankingStats.recentWeekTotalPlayCount` is `0`
+- **AND** `rankingStats.recentWeekTop1PlayCountShare`, `rankingStats.recentWeekTop3PlayCountShare`, and `rankingStats.recentWeekTop10PlayCountShare` are `0`
+- **AND** `recentLongTermShiftStats.recentWeekTop20TracksInAllTimeTop100Count` is `0`
+- **AND** `recentLongTermShiftStats.recentWeekTop20TracksInAllTimeTop100Share` is `0`
+- **AND** `recentLongTermShiftStats.allTimeTop20TracksInRecentWeekTop100Count` is `0`
+- **AND** `recentLongTermShiftStats.allTimeTop20TracksInRecentWeekTop100Share` is `0`
+- **AND** `recentLongTermShiftStats.recentWeekAllTimeOverlapMedianAbsoluteRankDelta` is `null`
+- **AND** the recent-week Top/Bottom indexes and rank-rise/rank-drop indexes are empty arrays
+
+#### Scenario: Rank shift samples are shaped
+- **WHEN** `top10RecentWeekAllTimeOverlapByRankRise` or `top10RecentWeekAllTimeOverlapByRankDrop` is written
+- **THEN** each sample row includes `title`, `artistNames`, `recentWeekRank`, `allTimeRank`, `rankDelta`, `recentWeekPlayCount`, and `allTimePlayCount`
+- **AND** `rankDelta` for rank-rise rows is `allTimeRank - recentWeekRank`
+- **AND** `rankDelta` for rank-drop rows is `recentWeekRank - allTimeRank`
+
+### Requirement: README opens with concrete user-owned framing
+The Skill SHALL open `README.md` with user-facing copy that describes the NetEase Cloud Music listening traces, the concrete data collected, the local outputs, the reusable AI prompt, and the user's control over interpretation and sharing.
+
+#### Scenario: User reads README opening
+- **WHEN** a user opens `README.md`
+- **THEN** the opening copy includes the exact text `你的网易云里藏着一份很长的自我备忘录：主歌单里留下的歌，最近一周反复回来的歌，所有时间里一直没有退场的歌。`
+- **AND** it explains that `ncm-listening-profile` collects the confirmed primary playlist, recent-week listening ranking, and all-time listening ranking
+- **AND** it explains that the Skill generates local data files and a copyable AI analysis prompt
+- **AND** it includes the exact text `它把材料放到你手里，也把解释权留给你。最终要不要分析、交给谁分析、分享哪些文件，都由你决定。`
+

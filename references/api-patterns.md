@@ -134,6 +134,8 @@ playCount    row.playCount
 
 `score` 不进入 result/csv；如果 API 返回，可以保留在 raw。
 
+`type=1` 的 `weekData=[]` 是合法状态，表示最近一周没有听歌记录；继续写出 0 行 `ranking_recent_week` 输出。`type=0` 的 `allData=[]` 仍视为失败。
+
 ## 失败策略
 
 以下情况均视为本次采集失败，并写 diagnostics：
@@ -145,7 +147,7 @@ HTTP status 不是 200
 JSON 顶层不是对象
 code 不是 200
 必要字段缺失
-关键数据集为空
+关键数据集为空，合法的 weekData=[] 除外
 ```
 
 修复时优先检查：

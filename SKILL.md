@@ -236,6 +236,7 @@ durationStats       平均/中位/最短/最长歌长，短中长分布，最长
 addedAtStats        最早/最新加入时间，年/月/小时/星期分布，最早/最新加入索引
 rankingStats        播放总量、Top1/Top3/Top10 占比，排行头尾索引
 overlapStats        主歌单、最近一周、所有时间之间的重合数量和重合索引
+recentLongTermShiftStats 最近一周排行和所有时间排行之间的核心重合、活跃延续和排名升降索引
 artistStats         艺人出现次数、播放量索引、单曲艺人数量和样本
 albumStats          专辑出现次数、播放量索引、单曲专辑数量和样本
 lexicalStats        歌名、专辑、艺人文本词频和字符类型统计
@@ -251,10 +252,10 @@ aggregate 只做计算，不写人格画像、不写证据强弱、不替 AI 固
 ```text
 以下是我的网易云音乐数据：
 
-<run_dir>\aggregate\aggregate.json，这是预计算统计和索引；
 <run_dir>\result\primary_playlist.jsonl，这是我的主歌单完整数据；
 <run_dir>\result\ranking_all_time.jsonl，这是我所有时间的听歌排行完整数据；
-<run_dir>\result\ranking_recent_week.jsonl，这是我最近一周的听歌排行完整数据。
+<run_dir>\result\ranking_recent_week.jsonl，这是我最近一周的听歌排行完整数据；
+<run_dir>\aggregate\aggregate.json，这是从上面数据预先算出的统计和索引，用来快速定位趋势、极端值、重合项和样本；完整事实仍以上面三份 result 为准。
 
 请结合这些数据，详细分析我是一个怎样的人。
 ```
@@ -268,10 +269,10 @@ aggregate 只做计算，不写人格画像、不写证据强弱、不替 AI 固
 ```text
 以下是我的网易云音乐数据：
 
-<run_dir>\aggregate\aggregate.json，这是预计算统计和索引；
 <run_dir>\result\primary_playlist.jsonl，这是我的主歌单完整数据；
 <run_dir>\result\ranking_all_time.jsonl，这是我所有时间的听歌排行完整数据；
-<run_dir>\result\ranking_recent_week.jsonl，这是我最近一周的听歌排行完整数据。
+<run_dir>\result\ranking_recent_week.jsonl，这是我最近一周的听歌排行完整数据；
+<run_dir>\aggregate\aggregate.json，这是从上面数据预先算出的统计和索引，用来快速定位趋势、极端值、重合项和样本；完整事实仍以上面三份 result 为准。
 
 请结合这些数据，详细地分析我是一个怎样的人。
 
@@ -302,7 +303,7 @@ aggregate 只做计算，不写人格画像、不写证据强弱、不替 AI 固
 - 如果端口 `9222` 被占用，要求用户关闭占用程序。
 - Python 只连接本机 CDP endpoint；网易云业务数据必须在已登录页面上下文内通过 `fetch(..., { credentials: "include" })` 获取。
 - 主动业务 API 只允许使用 `/api/nuser/account/get`、`/api/user/playlist`、`/api/v6/playlist/detail`、`/api/v1/play/record`。
-- 任何关键 API 失败、状态异常、返回结构不符合预期或数据集为空，本次采集失败并写 diagnostics。
+- 任何关键 API 失败、状态异常、返回结构不符合预期或关键数据集为空，本次采集失败并写 diagnostics；`ranking_recent_week` 允许 0 行，表示最近一周没有听歌记录。
 - `durationMs` 来自 API 毫秒歌长，`duration` 由 `durationMs` 格式化。
 
 ## 诊断和自修复

@@ -142,6 +142,7 @@ durationStats
 addedAtStats
 rankingStats
 overlapStats
+recentLongTermShiftStats
 artistStats
 albumStats
 lexicalStats
@@ -162,6 +163,8 @@ aggregate 规则：
 top30ArtistsByPrimaryTrackCount
 top30AlbumsByPrimaryTrackCount
 top50PrimaryRecentWeekOverlapByRecentWeekPlayCount
+recentWeekTop20TracksInAllTimeTop100Share
+top10RecentWeekAllTimeOverlapByRankRise
 bottom20RecentWeekTracksByPlayCount
 top20EarliestAddedPrimaryTracks
 singletonArtistsInPrimarySamplesMax50

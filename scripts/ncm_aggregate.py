@@ -155,6 +155,43 @@ def _counter_samples(counter: Counter[str], sample_map: dict[str, dict[str, Any]
     return rows[:limit]
 
 
+def _rank_shift_sample(recent: dict[str, Any], all_time: dict[str, Any], rank_delta: int) -> dict[str, Any]:
+    result = {
+        "title": recent.get("title") or all_time.get("title"),
+        "artistNames": recent.get("artistNames") or all_time.get("artistNames"),
+        "recentWeekRank": recent.get("rank"),
+        "allTimeRank": all_time.get("rank"),
+        "rankDelta": rank_delta,
+        "recentWeekPlayCount": recent.get("playCount"),
+        "allTimePlayCount": all_time.get("playCount"),
+    }
+    track_id = recent.get("trackId") or all_time.get("trackId")
+    if track_id is not None:
+        result["trackId"] = track_id
+    return result
+
+
+def _rank_shift_samples(recent_keyed: dict[str, dict[str, Any]], all_keyed: dict[str, dict[str, Any]], mode: str, limit: int) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for key in recent_keyed.keys() & all_keyed.keys():
+        recent = recent_keyed[key]
+        all_time = all_keyed[key]
+        recent_rank = int(recent.get("rank") or 0)
+        all_time_rank = int(all_time.get("rank") or 0)
+        if not recent_rank or not all_time_rank:
+            continue
+        if mode == "rise":
+            rank_delta = all_time_rank - recent_rank
+        elif mode == "drop":
+            rank_delta = recent_rank - all_time_rank
+        else:
+            raise ValueError(f"Unsupported rank shift mode: {mode}")
+        if rank_delta <= 0:
+            continue
+        rows.append(_rank_shift_sample(recent, all_time, rank_delta))
+    return sorted(rows, key=lambda item: (-int(item["rankDelta"]), int(item["recentWeekRank"] or 0), int(item["allTimeRank"] or 0)))[:limit]
+
+
 def build_aggregate(
     primary_raw: list[dict[str, Any]],
     primary_result: list[dict[str, Any]],
@@ -181,6 +218,8 @@ def build_aggregate(
     primary_keyed = {_track_key(row, primary_raw[index] if index < len(primary_raw) else None): primary_samples[index] for index, row in enumerate(primary_result)}
     recent_keyed = {_track_key(row, recent_raw[index] if index < len(recent_raw) else None): recent_samples[index] for index, row in enumerate(recent_result)}
     all_keyed = {_track_key(row, all_raw[index] if index < len(all_raw) else None): all_samples[index] for index, row in enumerate(all_result)}
+    recent_keys_by_rank = [_track_key(row, recent_raw[index] if index < len(recent_raw) else None) for index, row in enumerate(recent_result)]
+    all_keys_by_rank = [_track_key(row, all_raw[index] if index < len(all_raw) else None) for index, row in enumerate(all_result)]
     primary_keys = set(primary_keyed)
     recent_keys = set(recent_keyed)
     all_keys = set(all_keyed)
@@ -234,6 +273,15 @@ def build_aggregate(
     all_only = all_keys - primary_keys - recent_keys
     primary_not_ranked = primary_keys - recent_keys - all_keys
     all_three = primary_keys & recent_keys & all_keys
+    recent_top20_keys = set(recent_keys_by_rank[:20])
+    recent_top100_keys = set(recent_keys_by_rank[:100])
+    all_top20_keys = set(all_keys_by_rank[:20])
+    all_top100_keys = set(all_keys_by_rank[:100])
+    rank_delta_values = [
+        abs(int(recent_keyed[key].get("rank") or 0) - int(all_keyed[key].get("rank") or 0))
+        for key in recent_keys & all_keys
+        if int(recent_keyed[key].get("rank") or 0) and int(all_keyed[key].get("rank") or 0)
+    ]
 
     return {
         "schemaVersion": 1,
@@ -293,6 +341,15 @@ def build_aggregate(
             "onlyInRecentWeekTop20ByPlayCount": overlap_rows(recent_only, recent_keyed, 20),
             "onlyInAllTimeTop20ByPlayCount": overlap_rows(all_only, all_keyed, 20),
             "primaryNotInAnyRankingCount": len(primary_not_ranked),
+        },
+        "recentLongTermShiftStats": {
+            "recentWeekTop20TracksInAllTimeTop100Count": len(recent_top20_keys & all_top100_keys),
+            "recentWeekTop20TracksInAllTimeTop100Share": _round_share(len(recent_top20_keys & all_top100_keys) / len(recent_top20_keys)) if recent_top20_keys else 0,
+            "allTimeTop20TracksInRecentWeekTop100Count": len(all_top20_keys & recent_top100_keys),
+            "allTimeTop20TracksInRecentWeekTop100Share": _round_share(len(all_top20_keys & recent_top100_keys) / len(all_top20_keys)) if all_top20_keys else 0,
+            "recentWeekAllTimeOverlapMedianAbsoluteRankDelta": median(rank_delta_values) if rank_delta_values else None,
+            "top10RecentWeekAllTimeOverlapByRankRise": _rank_shift_samples(recent_keyed, all_keyed, "rise", 10),
+            "top10RecentWeekAllTimeOverlapByRankDrop": _rank_shift_samples(recent_keyed, all_keyed, "drop", 10),
         },
         "artistStats": {
             "top30ArtistsByPrimaryTrackCount": _top_counts(artist_primary, 30),
