@@ -1,8 +1,4 @@
-# ncm-listening-profile
-
-<p align="right">
-  <a href="README.md">简体中文</a> · <strong>English</strong>
-</p>
+# ncm-listening-profile <sub><sup>[简体中文](README.md) · English</sup></sub>
 
 Inside your NetEase Cloud Music account, there is a long, quiet memo to yourself: the songs you left in your main playlist, the songs you kept returning to over the past week, and the songs that never quite left the stage across all time.
 
