@@ -2,7 +2,7 @@ outputs/
 .codex/
 gitleaks-*.json
 
-__pycache__/
-*.py[cod]
 
 .idea/
+scripts/__pycache__/
+scripts/*.py[cod]
