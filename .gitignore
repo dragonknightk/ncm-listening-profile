@@ -1,0 +1,7 @@
+.codex/skills/ncm-listening-profile/outputs/
+gitleaks-*.json
+
+__pycache__/
+*.py[cod]
+
+.idea/

@@ -1,0 +1,4 @@
+interface:
+  display_name: "网易云音乐听歌画像数据采集"
+  short_description: "用 API 采集网易云音乐主歌单和听歌排行，输出 result/csv/raw/aggregate 与诊断日志"
+  default_prompt: "使用 $ncm-listening-profile 采集我的网易云音乐听歌画像数据。"
