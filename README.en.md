@@ -10,6 +10,25 @@ Inside your NetEase Cloud Music account, there is a long, quiet memo to yourself
 
 It puts the material in your hands, and leaves the right to interpret it with you. Whether to analyze it, who to give it to, and which files to share are all your decisions.
 
+## Profile Snippet Example
+
+The snippets below are compressed examples generated from fictional data. They show the analysis style and do not come from real user data.
+
+> **Long-Term Undertone**  
+> Out of 260 songs in the main playlist, 71 also appear in the long-term Top 100; among the long-term Top 20, 12 have stayed in the main playlist for more than two years. Recurring title images gather around `night`, `river`, `home`, `cloud`, `light`, and `distance`, while track lengths lean toward medium and long arcs: many songs are not trying to deliver a chorus within three minutes, but to unfold a scene slowly.
+>
+> This makes the long-term undertone feel less like "intense expression" and more like "building an inner environment." You are not only collecting pleasant melodies; you are preserving rooms you can enter again and again: night roads, distance, echoes, and low-lit light. Music is not just an emotional outlet here. It is also a way of arranging things, giving what cannot yet be said a place to settle first.
+
+> **Recent Week**  
+> The recent week has 390 total plays, but the concentration is high: the top 3 tracks account for more than 30%, and the first-ranked track appears more than 50 times in one week. They are not all long-term core songs; two of them were only added to the main playlist recently, which suggests this is not simple nostalgia, but a recent state suddenly needing a certain kind of sound.
+>
+> This short-term concentration feels like "holding yourself in place." You may not be exploring widely right now, but repeatedly checking a few stable melodies: checking rhythm, checking emotion, checking that you are still somewhere controllable. The long-term ranking tells us how you usually settle yourself; the recent week is more like a thermometer, showing which feelings are becoming closer, more urgent, and more in need of being heard.
+
+> **Emotional Structure And Intimacy**  
+> Two opposing image groups keep recurring in the data: one group is `home`, `light`, `arrival`, and `stay`; the other is `alone`, `run away`, `darkness`, and `farewell`. This is not a simple contradiction. It looks more like an intimacy structure: you need closeness, but also a way back; you long to be understood, but do not like being defined too quickly.
+>
+> So this profile would not read you as "cold" or "fragile." More precisely, you seem serious and careful about intimacy. You are willing to keep what truly matters for a long time, but it has to remain at a distance that feels safe enough. Music here is both boundary and signal: it keeps softness for you, while filtering out understandings that are too loud, too fast, or too rough.
+
 ## What It Does
 
 - Starts or connects to the Windows Win32 version of `cloudmusic.exe`.
@@ -26,9 +45,9 @@ The currently verified NetEase Cloud Music version is `NetEase Cloud Music 3.0.0
 
 ## Download And Install
 
-It is recommended to download the packaged `ncm-listening-profile.zip` from GitHub Releases.
+It is recommended to download the packaged `ncm-listening-profile.zip` from [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest).
 
-Prefer the `ncm-listening-profile.zip` file on the release page, rather than GitHub's automatically generated Source code archives. The Source code archives include development specs and archived change files that ordinary users do not need.
+Do not download GitHub's automatically generated Source code archives. They include development specs and archived change files that ordinary users do not need.
 
 After extracting it, place the entire `ncm-listening-profile/` directory into the skills directory scanned by your Agent client. Different clients may use different skills directories, so follow the documentation for the client you are using.
 
