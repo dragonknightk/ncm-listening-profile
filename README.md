@@ -1,4 +1,8 @@
-# ncm-listening-profile <sub><sup>简体中文 · [English](README.en.md)</sup></sub>
+# ncm-listening-profile
+
+<p align="right">
+  <strong>简体中文</strong> · <a href="README.en.md">English</a>
+</p>
 
 你的网易云里藏着一份很长的自我备忘录：主歌单里留下的歌，最近一周反复回来的歌，所有时间里一直没有退场的歌。
 
