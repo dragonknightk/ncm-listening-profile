@@ -31,7 +31,7 @@
 
 ## 做什么
 
-- 启动或连接 Windows Win32 版 `cloudmusic.exe`。
+- 启动或连接 Windows 版 `cloudmusic.exe` 或 macOS 版 `NeteaseMusic.app`。
 - 在已登录的网易云音乐客户端页面上下文里请求网易云 `/api`。
 - 列出你创建的歌单，并让你选择一个主歌单。
 - 采集主歌单、最近一周听歌排行和所有时间听歌排行。
@@ -39,9 +39,14 @@
 
 ## 环境
 
-需要 Windows、Python 3.10+、支持 Agent Skills 的客户端，以及 NetEase Cloud Music Win32 桌面版 `cloudmusic.exe`。
+需要 Windows 或 macOS、Python 3.10+、支持 Agent Skills 的客户端，以及网易云音乐桌面版客户端。
 
-目前验证过的网易云音乐版本是 `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`。其他版本没有保证；失败时先看 `log/collection_diagnostics.json`。
+已验证环境：
+
+- Windows：已在 Windows 10 + `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`，以及更高 Windows 系统和更新网易云桌面客户端上真实采集通过。
+- macOS：已在 `macOS 26.3.1 arm64` + `NeteaseMusicDesktop/3.1.7.3283` 上真实采集通过。
+
+采集依赖本机客户端提供的已登录页面上下文和 `9222` CDP。数据结构兼容性主要取决于网易云服务端 API；客户端或系统版本通常不是主要风险，除非它影响客户端启动、CDP 暴露、登录态或页面上下文执行。失败时先看 `log/collection_diagnostics.json`。
 
 ## 下载和安装
 
@@ -63,6 +68,8 @@ python -m pip install -r scripts/requirements.txt
 ```powershell
 python scripts/collect_ncm_profile.py --check
 ```
+
+macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换成 `python3`。
 
 ## 使用
 

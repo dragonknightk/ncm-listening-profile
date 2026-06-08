@@ -1,13 +1,19 @@
 # API 采集参考
 
-当 NetEase Cloud Music 版本变化导致采集失败时，先读本次 run 的 `log/collection_diagnostics.json`，根据 `failedPhase`、`apiPath`、`status`、`responseShape` 和 `repairHints` 定位函数。
+当 NetEase Cloud Music 采集失败时，先读本次 run 的 `log/collection_diagnostics.json`，根据 `failedPhase`、`apiPath`、`status`、`responseShape` 和 `repairHints` 定位函数。客户端或系统版本通常不是主要风险；真正需要重点排查的是 CDP 是否可用、页面上下文是否有登录态、网易云服务端 API 返回结构是否仍兼容。
 
 ## 启动参数
 
-启动 NetEase Cloud Music：
+Windows 启动 NetEase Cloud Music：
 
 ```powershell
 cloudmusic.exe --force-renderer-accessibility=complete --remote-debugging-port=9222
+```
+
+macOS 启动 NetEase Cloud Music：
+
+```bash
+open -na /Applications/NeteaseMusic.app --args --force-renderer-accessibility=complete --remote-debugging-port=9222
 ```
 
 预期本机 CDP endpoints：
@@ -21,6 +27,7 @@ http://127.0.0.1:9222/json
 
 ```text
 orpheus://orpheus/pub/app.html
+orpheus://orpheus/app.html
 ```
 
 Python 只访问上面的本机 CDP endpoints。网易云业务数据必须由页面上下文发起：

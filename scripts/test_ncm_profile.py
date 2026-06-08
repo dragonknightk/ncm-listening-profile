@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 from ncm_aggregate import build_aggregate
 from ncm_api import (
@@ -15,6 +16,16 @@ from ncm_api import (
     list_created_playlists,
     public_playlist_choices,
     resolve_playlist,
+)
+from ncm_env import (
+    NcmClient,
+    NcmProcess,
+    UserActionRequired,
+    assert_port_9222_available,
+    client_launch_args,
+    discover_client_paths,
+    find_running_client_processes,
+    require_unique_client,
 )
 from ncm_diagnostics import CollectionDiagnostics
 from ncm_outputs import (
@@ -40,6 +51,26 @@ class FakeCdpClient:
         if not self.payloads:
             raise AssertionError("No fake CDP payload queued.")
         return self.payloads.pop(0)
+
+
+class FakeProc:
+    def __init__(self, pid: int, name: str, exe: str | None):
+        self.info = {"pid": pid, "name": name, "exe": exe}
+
+
+class FakePsutil:
+    class NoSuchProcess(Exception):
+        pass
+
+    class AccessDenied(Exception):
+        pass
+
+    def __init__(self, processes: list[FakeProc]):
+        self.processes = processes
+
+    def process_iter(self, attrs: list[str]) -> list[FakeProc]:
+        self.attrs = attrs
+        return self.processes
 
 
 def api_payload(data: dict[str, Any], status: int = 200) -> dict[str, Any]:
@@ -121,6 +152,101 @@ def walk_keys(value: Any) -> set[str]:
 
 
 class NcmProfileV3Tests(unittest.TestCase):
+    def test_windows_client_discovery_launch_args_and_process_detection(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            exe = Path(temp_dir) / "CloudMusic" / "cloudmusic.exe"
+            exe.parent.mkdir()
+            exe.write_text("", encoding="utf-8")
+
+            with (
+                patch("sys.platform", "win32"),
+                patch.dict("os.environ", {"NCM_CLIENT_PATH": str(exe)}, clear=False),
+                patch("ncm_env._windows_candidate_from_registry", return_value=[]),
+                patch("ncm_env._windows_common_candidates", return_value=[]),
+            ):
+                paths = discover_client_paths()
+                self.assertEqual(paths, [exe.resolve()])
+                client = require_unique_client()
+                self.assertEqual(client.platform, "windows")
+                self.assertEqual(client.kind, "windows_exe")
+                self.assertEqual(
+                    client_launch_args(client, 9222),
+                    [
+                        str(exe.resolve()),
+                        "--force-renderer-accessibility=complete",
+                        "--remote-debugging-port=9222",
+                    ],
+                )
+
+            fake_psutil = FakePsutil(
+                [
+                    FakeProc(101, "cloudmusic.exe", str(exe)),
+                    FakeProc(102, "notepad.exe", r"C:\Windows\notepad.exe"),
+                ]
+            )
+            with patch("sys.platform", "win32"), patch("ncm_env._load_psutil", return_value=fake_psutil):
+                running = find_running_client_processes()
+            self.assertEqual(running, [NcmProcess(pid=101, name="cloudmusic.exe", exe=str(exe))])
+
+    def test_macos_client_discovery_launch_args_and_process_detection(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            app = Path(temp_dir) / "NeteaseMusic.app"
+            app.mkdir()
+
+            with (
+                patch("sys.platform", "darwin"),
+                patch.dict("os.environ", {}, clear=True),
+                patch("ncm_env._macos_common_candidates", return_value=[app]),
+            ):
+                paths = discover_client_paths()
+                self.assertEqual(paths, [app.resolve()])
+                client = require_unique_client()
+                self.assertEqual(client.platform, "macos")
+                self.assertEqual(client.kind, "macos_app")
+                self.assertEqual(
+                    client_launch_args(client, 9222),
+                    [
+                        "open",
+                        "-na",
+                        str(app.resolve()),
+                        "--args",
+                        "--force-renderer-accessibility=complete",
+                        "--remote-debugging-port=9222",
+                    ],
+                )
+
+            fake_psutil = FakePsutil(
+                [
+                    FakeProc(201, "NeteaseMusic", str(app / "Contents" / "MacOS" / "NeteaseMusic")),
+                    FakeProc(202, "NeteaseMusic Helper (Renderer)", str(app / "Contents" / "Frameworks" / "NeteaseMusic Helper.app")),
+                    FakeProc(203, "Music", "/Applications/Music.app/Contents/MacOS/Music"),
+                ]
+            )
+            with patch("sys.platform", "darwin"), patch("ncm_env._load_psutil", return_value=fake_psutil):
+                running = find_running_client_processes()
+            self.assertEqual([proc.pid for proc in running], [201, 202])
+
+    def test_client_path_validation_unsupported_platform_and_port_conflict_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invalid = Path(temp_dir) / "NeteaseMusic.app"
+            invalid.write_text("not a directory", encoding="utf-8")
+
+            with patch("sys.platform", "darwin"):
+                self.assertEqual(discover_client_paths(str(invalid)), [])
+                with self.assertRaises(UserActionRequired) as missing:
+                    require_unique_client(str(invalid))
+                self.assertIn("--client-path", str(missing.exception))
+
+            with patch("sys.platform", "linux"):
+                with self.assertRaises(UserActionRequired) as unsupported:
+                    require_unique_client()
+                self.assertIn("Windows and macOS", str(unsupported.exception))
+
+            with patch("ncm_env.port_is_open", return_value=True), patch("ncm_env.describe_port_owner", return_value="other app (pid 9)"):
+                with self.assertRaises(UserActionRequired) as occupied:
+                    assert_port_9222_available(9222)
+                self.assertIn("Port 9222 is occupied by other app (pid 9)", str(occupied.exception))
+
     def test_fetch_api_json_uses_page_context_payload_and_rejects_unsafe_status(self) -> None:
         client = FakeCdpClient([api_payload({"code": 200, "ok": True})])
 
@@ -433,12 +559,27 @@ class NcmProfileV3Tests(unittest.TestCase):
             )
 
             data = json.loads((run_dir / "log" / "collection_diagnostics.json").read_text(encoding="utf-8"))
-            self.assertEqual(data["schemaVersion"], 2)
-            self.assertEqual(data["skillVersion"], "ncm-listening-profile-v3")
+            self.assertEqual(data["schemaVersion"], 3)
+            self.assertEqual(data["skillVersion"], "ncm-listening-profile-v6")
+            self.assertIn("verifiedEnvironments", data)
+            self.assertNotIn("verifiedClient", data)
             self.assertEqual(data["failedPhase"], "current_user_api")
             self.assertEqual(data["errorDetails"]["status"], 403)
             self.assertFalse({"headers", "cookie", "requestBody", "token"} & walk_keys(data))
             self.assertIn("ncm_api.py", " ".join(data["repairHints"][0]["read"]))
+
+    def test_diagnostics_records_platform_neutral_client_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            skill_dir = Path(temp_dir)
+            run_dir = create_run_dirs(skill_dir, "20260604-120000")
+            diagnostics = CollectionDiagnostics(run_dir, skill_dir, 9222)
+            diagnostics.set_environment(clientPath="/Applications/NeteaseMusic.app", clientPlatform="macos", clientKind="macos_app")
+
+            data = json.loads((run_dir / "log" / "collection_diagnostics.json").read_text(encoding="utf-8"))
+            self.assertEqual(data["environment"]["clientPath"], "/Applications/NeteaseMusic.app")
+            self.assertEqual(data["environment"]["clientPlatform"], "macos")
+            self.assertEqual(data["environment"]["clientKind"], "macos_app")
+            self.assertNotIn("cloudmusicExe", data["environment"])
 
     def test_runtime_scripts_do_not_keep_legacy_collection_tokens(self) -> None:
         scripts_dir = Path(__file__).resolve().parent

@@ -7,20 +7,25 @@ from pathlib import Path
 from typing import Any
 
 
-DIAGNOSTICS_SCHEMA_VERSION = 2
-VERIFIED_CLIENT = {
-    "name": "NetEase Cloud Music",
-    "version": "3.0.0 Beta",
-    "architecture": "64-bit",
-    "build": "201967",
-    "patch": "dd70f35",
-}
+DIAGNOSTICS_SCHEMA_VERSION = 3
+VERIFIED_ENVIRONMENTS = [
+    {
+        "platform": "Windows",
+        "status": "verified",
+        "details": "Windows 10 with NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35; higher Windows systems and newer NetEase Cloud Music desktop clients have also passed real collection runs.",
+    },
+    {
+        "platform": "macOS",
+        "status": "verified",
+        "details": "macOS 26.3.1 arm64 with NeteaseMusicDesktop/3.1.7.3283.",
+    },
+]
 
 
 REPAIR_HINTS: dict[str, dict[str, Any]] = {
     "launch": {
         "likelyFiles": ["scripts/ncm_env.py", "scripts/collect_ncm_profile.py"],
-        "likelyFunctions": ["connect_runtime", "block_if_cloudmusic_running", "assert_port_9222_available"],
+        "likelyFunctions": ["connect_runtime", "block_if_client_running", "assert_port_9222_available"],
     },
     "cdp_connection": {
         "likelyFiles": ["scripts/ncm_cdp.py", "scripts/ncm_env.py"],
@@ -120,12 +125,12 @@ class CollectionDiagnostics:
         self.path = run_dir / "log" / "collection_diagnostics.json"
         self.data: dict[str, Any] = {
             "schemaVersion": DIAGNOSTICS_SCHEMA_VERSION,
-            "skillVersion": "ncm-listening-profile-v3",
+            "skillVersion": "ncm-listening-profile-v6",
             "runId": run_dir.name,
             "createdAt": _now_iso(),
             "updatedAt": _now_iso(),
             "skillRoot": str(skill_dir),
-            "verifiedClient": VERIFIED_CLIENT,
+            "verifiedEnvironments": VERIFIED_ENVIRONMENTS,
             "environment": {
                 "os": platform.system() or "unknown",
                 "platform": platform.platform(),

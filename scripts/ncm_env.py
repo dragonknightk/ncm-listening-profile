@@ -9,7 +9,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
 
 
 class NcmError(RuntimeError):
@@ -31,7 +31,20 @@ class NcmProcess:
     exe: str | None
 
 
+@dataclass(frozen=True)
+class NcmClient:
+    path: Path
+    platform: str
+    kind: str
+
+
 def check_dependencies() -> None:
+    if sys.version_info < (3, 10):
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        raise DependencyError(
+            f"Python 3.10+ is required. Current Python: {current}. "
+            "Run this Skill with a Python 3.10+ interpreter."
+        )
     missing: list[str] = []
     for package, import_name in (
         ("psutil", "psutil"),
@@ -61,8 +74,33 @@ def _load_psutil():
     return psutil
 
 
-def find_running_cloudmusic_processes() -> list[NcmProcess]:
+def client_platform() -> str:
+    if sys.platform == "win32":
+        return "windows"
+    if sys.platform == "darwin":
+        return "macos"
+    raise UserActionRequired(
+        "Unsupported platform for this Skill. NetEase Cloud Music desktop collection "
+        "is supported on Windows and macOS."
+    )
+
+
+def _is_windows_process(name_l: str, exe_l: str) -> bool:
+    return name_l == "cloudmusic.exe" or exe_l.endswith("\\cloudmusic.exe") or exe_l.endswith("/cloudmusic.exe")
+
+
+def _is_macos_process(name_l: str, exe_l: str) -> bool:
+    return (
+        name_l == "neteasemusic"
+        or name_l.startswith("neteasemusic helper")
+        or "/neteasemusic.app/" in exe_l
+        or exe_l.endswith("/neteasemusic")
+    )
+
+
+def find_running_client_processes() -> list[NcmProcess]:
     psutil = _load_psutil()
+    platform_name = client_platform()
     matches: list[NcmProcess] = []
     for proc in psutil.process_iter(["pid", "name", "exe"]):
         try:
@@ -72,17 +110,19 @@ def find_running_cloudmusic_processes() -> list[NcmProcess]:
             continue
         name_l = name.lower()
         exe_l = (exe or "").lower()
-        if name_l == "cloudmusic.exe" or exe_l.endswith("\\cloudmusic.exe"):
+        if platform_name == "windows" and _is_windows_process(name_l, exe_l):
+            matches.append(NcmProcess(pid=int(proc.info["pid"]), name=name, exe=exe))
+        elif platform_name == "macos" and _is_macos_process(name_l, exe_l):
             matches.append(NcmProcess(pid=int(proc.info["pid"]), name=name, exe=exe))
     return matches
 
 
 def _candidate_from_env() -> list[Path]:
-    value = os.environ.get("NCM_CLOUDMUSIC_EXE")
+    value = os.environ.get("NCM_CLIENT_PATH")
     return [Path(value)] if value else []
 
 
-def _candidate_from_registry() -> list[Path]:
+def _windows_candidate_from_registry() -> list[Path]:
     if sys.platform != "win32":
         return []
     try:
@@ -132,7 +172,7 @@ def _candidate_from_registry() -> list[Path]:
     return paths
 
 
-def _common_candidates() -> list[Path]:
+def _windows_common_candidates() -> list[Path]:
     candidates: list[Path] = []
     env_dirs = [
         os.environ.get("ProgramFiles"),
@@ -163,7 +203,22 @@ def _common_candidates() -> list[Path]:
     return candidates
 
 
-def _unique_existing(paths: Iterable[Path]) -> list[Path]:
+def _macos_common_candidates() -> list[Path]:
+    return [
+        Path("/Applications") / "NeteaseMusic.app",
+        Path.home() / "Applications" / "NeteaseMusic.app",
+    ]
+
+
+def _is_windows_client_path(path: Path) -> bool:
+    return path.name.lower() == "cloudmusic.exe" and path.is_file()
+
+
+def _is_macos_client_path(path: Path) -> bool:
+    return path.name.lower() == "neteasemusic.app" and path.is_dir()
+
+
+def _unique_existing(paths: Iterable[Path], predicate: Callable[[Path], bool]) -> list[Path]:
     seen: set[str] = set()
     result: list[Path] = []
     for path in paths:
@@ -172,31 +227,49 @@ def _unique_existing(paths: Iterable[Path]) -> list[Path]:
         except OSError:
             continue
         key = str(resolved).lower()
-        if key not in seen and resolved.exists() and resolved.name.lower() == "cloudmusic.exe":
+        if key not in seen and resolved.exists() and predicate(resolved):
             seen.add(key)
             result.append(resolved)
     return result
 
 
-def discover_cloudmusic_exes(explicit: str | None = None) -> list[Path]:
+def discover_client_paths(explicit: str | None = None) -> list[Path]:
+    platform_name = client_platform()
+    predicate = _is_windows_client_path if platform_name == "windows" else _is_macos_client_path
     if explicit:
-        return _unique_existing([Path(explicit)])
-    return _unique_existing([*_candidate_from_env(), *_candidate_from_registry(), *_common_candidates()])
+        return _unique_existing([Path(explicit)], predicate)
+    if platform_name == "windows":
+        candidates = [*_candidate_from_env(), *_windows_candidate_from_registry(), *_windows_common_candidates()]
+    else:
+        candidates = [*_candidate_from_env(), *_macos_common_candidates()]
+    return _unique_existing(candidates, predicate)
 
 
-def require_unique_cloudmusic_exe(explicit: str | None = None) -> Path:
-    candidates = discover_cloudmusic_exes(explicit)
+def _client_path_hint() -> str:
+    platform_name = client_platform()
+    if platform_name == "windows":
+        return 'python scripts/collect_ncm_profile.py --client-path "D:\\CloudMusic\\cloudmusic.exe" --list-playlists'
+    return 'python3 scripts/collect_ncm_profile.py --client-path "/Applications/NeteaseMusic.app" --list-playlists'
+
+
+def _client_kind_for_platform(platform_name: str) -> str:
+    return "windows_exe" if platform_name == "windows" else "macos_app"
+
+
+def require_unique_client(explicit: str | None = None) -> NcmClient:
+    platform_name = client_platform()
+    candidates = discover_client_paths(explicit)
     if len(candidates) == 1:
-        return candidates[0]
+        return NcmClient(path=candidates[0], platform=platform_name, kind=_client_kind_for_platform(platform_name))
     if not candidates:
         raise UserActionRequired(
-            "Could not find cloudmusic.exe. Ask the user for the NetEase Cloud Music executable path "
-            "and pass it with --cloudmusic-exe."
+            "Could not find a NetEase Cloud Music desktop client. Ask the user for the client path "
+            f"and pass it with --client-path.\nExample: {_client_path_hint()}"
         )
     formatted = "\n".join(f"- {path}" for path in candidates)
     raise UserActionRequired(
-        "Found multiple cloudmusic.exe candidates. Ask the user which one to use and pass it with "
-        f"--cloudmusic-exe:\n{formatted}"
+        "Found multiple NetEase Cloud Music desktop client candidates. Ask the user which one to use "
+        f"and pass it with --client-path:\n{formatted}"
     )
 
 
@@ -231,18 +304,18 @@ def assert_port_9222_available(port: int) -> None:
         )
 
 
-def block_if_cloudmusic_running(explicit_exe: str | None = None) -> None:
-    running = find_running_cloudmusic_processes()
+def block_if_client_running(explicit_client_path: str | None = None) -> None:
+    running = find_running_client_processes()
     if not running:
         return
-    candidates = discover_cloudmusic_exes(explicit_exe)
+    candidates = discover_client_paths(explicit_client_path)
     process_lines = "\n".join(f"- pid {p.pid}: {p.exe or p.name}" for p in running)
     if len(candidates) == 1:
-        path_note = f"\nDetected executable candidate: {candidates[0]}"
+        path_note = f"\nDetected client candidate: {candidates[0]}"
     elif len(candidates) > 1:
-        path_note = "\nMultiple executable candidates were found; ask the user which one to use with --cloudmusic-exe."
+        path_note = "\nMultiple client candidates were found; ask the user which one to use with --client-path."
     else:
-        path_note = "\nNo executable path was found; ask the user for cloudmusic.exe and pass --cloudmusic-exe."
+        path_note = "\nNo client path was found; ask the user for the NetEase Cloud Music client path and pass --client-path."
     raise UserActionRequired(
         "NetEase Cloud Music is already running. Ask the user to close it manually before launching this Skill.\n"
         + process_lines
@@ -250,12 +323,23 @@ def block_if_cloudmusic_running(explicit_exe: str | None = None) -> None:
     )
 
 
-def launch_cloudmusic(exe: Path, port: int) -> subprocess.Popen:
-    args = [
-        str(exe),
+def client_launch_args(client: NcmClient, port: int) -> list[str]:
+    common_args = [
         "--force-renderer-accessibility=complete",
         f"--remote-debugging-port={port}",
     ]
+    if client.platform == "windows":
+        return [str(client.path), *common_args]
+    if client.platform == "macos":
+        return ["open", "-na", str(client.path), "--args", *common_args]
+    raise UserActionRequired(
+        "Unsupported platform for this Skill. NetEase Cloud Music desktop collection "
+        "is supported on Windows and macOS."
+    )
+
+
+def launch_client(client: NcmClient, port: int) -> subprocess.Popen:
+    args = client_launch_args(client, port)
     return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 

@@ -31,7 +31,7 @@ The snippets below are compressed examples generated from fictional data. They s
 
 ## What It Does
 
-- Starts or connects to the Windows Win32 version of `cloudmusic.exe`.
+- Starts or connects to the Windows `cloudmusic.exe` or macOS `NeteaseMusic.app` desktop client.
 - Calls NetEase Cloud Music `/api` endpoints from the context of the logged-in desktop client page.
 - Lists the playlists you created and asks you to choose one main playlist.
 - Collects the main playlist, recent-week listening ranking, and all-time listening ranking.
@@ -39,9 +39,14 @@ The snippets below are compressed examples generated from fictional data. They s
 
 ## Environment
 
-Requires Windows, Python 3.10+, an Agent Skills-capable client, and the NetEase Cloud Music Win32 desktop executable `cloudmusic.exe`.
+Requires Windows or macOS, Python 3.10+, an Agent Skills-capable client, and the NetEase Cloud Music desktop client.
 
-The currently verified NetEase Cloud Music version is `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`. Other versions are not guaranteed; if collection fails, check `log/collection_diagnostics.json` first.
+Verified environments:
+
+- Windows: verified through real collection runs on Windows 10 with `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`, and on higher Windows systems with newer NetEase Cloud Music desktop clients.
+- macOS: verified through a real collection run on `macOS 26.3.1 arm64` with `NeteaseMusicDesktop/3.1.7.3283`.
+
+Collection depends on the local desktop client providing a logged-in page context and `9222` CDP. Data compatibility mainly depends on the NetEase server API response shape; the operating system and client version are usually not the main risk unless they affect client launch, CDP exposure, login state, or page-context execution. If collection fails, check `log/collection_diagnostics.json` first.
 
 ## Download And Install
 
@@ -63,6 +68,8 @@ Check the environment:
 ```powershell
 python scripts/collect_ncm_profile.py --check
 ```
+
+On macOS, if `python` does not point to `Python 3.10+`, use `python3` in the commands above.
 
 ## Usage
 

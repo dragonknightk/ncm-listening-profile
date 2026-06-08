@@ -21,11 +21,11 @@ from ncm_env import (
     NcmError,
     UserActionRequired,
     assert_port_9222_available,
-    block_if_cloudmusic_running,
+    block_if_client_running,
     check_dependencies,
-    launch_cloudmusic,
+    launch_client,
     print_json,
-    require_unique_cloudmusic_exe,
+    require_unique_client,
     wait_for_cdp_version,
 )
 from ncm_outputs import (
@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--list-runs", action="store_true", help="List previous output runs without launching NetEase Cloud Music.")
     parser.add_argument("--playlist-name", help="Primary playlist name to collect.")
     parser.add_argument("--playlist-index", type=int, help="Public playlist number from --list-playlists.")
-    parser.add_argument("--cloudmusic-exe", help="Path to cloudmusic.exe when discovery is ambiguous.")
+    parser.add_argument("--client-path", help="Path to the NetEase Cloud Music desktop client when discovery is ambiguous.")
     parser.add_argument("--port", type=int, default=9222, help="CDP port. This Skill requires 9222.")
     parser.add_argument(
         "--connect-existing-cdp",
@@ -77,15 +77,25 @@ def connect_runtime(args: argparse.Namespace, diagnostics: CollectionDiagnostics
     try:
         if diagnostics:
             diagnostics.start_phase("launch")
-        block_if_cloudmusic_running(args.cloudmusic_exe)
+        block_if_client_running(args.client_path)
         assert_port_9222_available(args.port)
-        exe = require_unique_cloudmusic_exe(args.cloudmusic_exe)
+        client_info = require_unique_client(args.client_path)
         if diagnostics:
-            diagnostics.set_environment(cloudmusicExe=str(exe))
-        launch_cloudmusic(exe, args.port)
+            diagnostics.set_environment(
+                clientPath=str(client_info.path),
+                clientPlatform=client_info.platform,
+                clientKind=client_info.kind,
+            )
+        launch_client(client_info, args.port)
         version = wait_for_cdp_version(args.port)
         if diagnostics:
-            diagnostics.phase_ok("launch", cloudmusicExe=str(exe))
+            diagnostics.phase_ok(
+                "launch",
+                clientPath=str(client_info.path),
+                clientPlatform=client_info.platform,
+                clientKind=client_info.kind,
+                clientLaunchMode="launched_client",
+            )
             diagnostics.start_phase("cdp_connection", mode="launched_client")
         client = CdpClient.connect(args.port)
         if diagnostics:

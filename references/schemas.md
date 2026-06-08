@@ -182,24 +182,31 @@ log/collection_diagnostics.json
 
 ```json
 {
-  "schemaVersion": 2,
-  "skillVersion": "ncm-listening-profile-v3",
+  "schemaVersion": 3,
+  "skillVersion": "ncm-listening-profile-v6",
   "runId": "YYYYMMDD-HHMMSS",
   "createdAt": "2026-06-04T22:00:00+08:00",
   "updatedAt": "2026-06-04T22:00:01+08:00",
   "skillRoot": "<current skill root>",
-  "verifiedClient": {
-    "name": "NetEase Cloud Music",
-    "version": "3.0.0 Beta",
-    "architecture": "64-bit",
-    "build": "201967",
-    "patch": "dd70f35"
-  },
+  "verifiedEnvironments": [
+    {
+      "platform": "Windows",
+      "status": "verified",
+      "details": "Windows 10 with NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35; higher Windows systems and newer NetEase Cloud Music desktop clients have also passed real collection runs."
+    },
+    {
+      "platform": "macOS",
+      "status": "verified",
+      "details": "macOS 26.3.1 arm64 with NeteaseMusicDesktop/3.1.7.3283."
+    }
+  ],
   "environment": {
     "os": "Windows",
     "platform": "...",
     "cdpPort": 9222,
-    "cloudmusicExe": "...",
+    "clientPath": "...",
+    "clientPlatform": "windows",
+    "clientKind": "windows_exe",
     "cdpVersion": "...",
     "targetUrl": "orpheus://..."
   },

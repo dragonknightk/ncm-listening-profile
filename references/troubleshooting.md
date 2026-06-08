@@ -33,7 +33,12 @@ cookies/token/header/post data
 
 ## NetEase Cloud Music 已经运行
 
-如果发现 `cloudmusic.exe` 已经运行：
+如果发现网易云音乐桌面客户端已经运行：
+
+```text
+Windows: cloudmusic.exe
+macOS: NeteaseMusic / NeteaseMusic Helper
+```
 
 1. 停止流程。
 2. 不要 kill 进程。
@@ -199,12 +204,20 @@ python scripts/test_ncm_profile.py
 python scripts/collect_ncm_profile.py --check
 ```
 
+macOS 如果 `python` 不是 `Python 3.10+`，使用：
+
+```bash
+python3 scripts/test_ncm_profile.py
+python3 scripts/collect_ncm_profile.py --check
+```
+
 如涉及真实客户端兼容性，再重新执行列表和采集命令。
 
-当前 v3 已验证：
+## 已验证环境
 
 ```text
-NetEase Cloud Music 3.0.0 Beta 64-bit
-Build 201967
-Patch dd70f35
+Windows：已在 Windows 10 + NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35，以及更高 Windows 系统和更新网易云桌面客户端上真实采集通过。
+macOS：已在 macOS 26.3.1 arm64 + NeteaseMusicDesktop/3.1.7.3283 上真实采集通过。
 ```
+
+采集链路主要依赖网易云桌面客户端提供的已登录页面上下文和本机 CDP；数据结构兼容性主要取决于网易云服务端 API。客户端或系统版本通常不是主要风险，除非它影响客户端启动、CDP 暴露、登录态或页面上下文执行。
