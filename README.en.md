@@ -62,7 +62,7 @@ You can also open the [skills.sh page](https://www.skills.sh/dragonknightk/ncm-l
 
 ### ClawHub
 
-After publication on ClawHub, OpenClaw users can install it with the native command:
+OpenClaw users can install it with the native command:
 
 ```powershell
 openclaw skills install ncm-listening-profile
@@ -76,7 +76,7 @@ clawhub install ncm-listening-profile
 
 ### LobeHub
 
-After publication on LobeHub, install it with LobeHub Market CLI. This example installs it into Codex's global skills directory:
+Install it with LobeHub Market CLI. This example installs it into Codex's global skills directory:
 
 ```powershell
 npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
@@ -84,7 +84,7 @@ npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
 
 If you use another client, replace `--agent codex` with the right target, such as `open-claw`, `claude-code`, or `cursor`.
 
-These marketplace commands install the Skill files only. Before the first run, you still need to install the Python dependencies below.
+These installation commands install the Skill files only. Before the first run, you still need to install the Python dependencies below.
 
 ### GitHub Release
 

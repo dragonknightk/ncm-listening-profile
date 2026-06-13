@@ -62,7 +62,7 @@ npx skills add dragonknightk/ncm-listening-profile
 
 ### ClawHub
 
-发布到 ClawHub 后，OpenClaw 用户可以通过原生命令安装：
+OpenClaw 用户可以通过原生命令安装：
 
 ```powershell
 openclaw skills install ncm-listening-profile
@@ -76,7 +76,7 @@ clawhub install ncm-listening-profile
 
 ### LobeHub
 
-发布到 LobeHub 后，可以通过 LobeHub Market CLI 安装。下面示例安装到 Codex 的全局 skills 目录：
+可以通过 LobeHub Market CLI 安装。下面示例安装到 Codex 的全局 skills 目录：
 
 ```powershell
 npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
@@ -84,7 +84,7 @@ npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
 
 如果你使用其他客户端，把 `--agent codex` 换成对应目标，例如 `open-claw`、`claude-code` 或 `cursor`。
 
-这些 marketplace 命令只负责安装 Skill 文件。首次运行前仍需要按下面步骤安装 Python 依赖。
+这些安装命令只负责安装 Skill 文件。首次运行前仍需要按下面步骤安装 Python 依赖。
 
 ### GitHub Release
 
