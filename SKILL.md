@@ -5,9 +5,6 @@ description: 当用户想在 Windows 或 macOS 上采集网易云音乐/NetEase 
 metadata:
   openclaw:
     homepage: https://github.com/dragonknightk/ncm-listening-profile
-    os:
-      - windows
-      - macos
     requires:
       anyBins:
         - python

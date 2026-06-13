@@ -147,4 +147,6 @@ macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换
 
 ## 许可证
 
-本仓库使用 MIT License，见 `LICENSE`。
+本 GitHub 仓库使用 MIT License，见 `LICENSE`。
+
+通过 ClawHub 分发的 Skill 版本遵循 ClawHub 的 Skill 发布许可规则。
