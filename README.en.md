@@ -147,4 +147,6 @@ This project is not an official NetEase Cloud Music project and is not affiliate
 
 ## License
 
-This repository uses the MIT License. See `LICENSE`.
+This GitHub repository uses the MIT License. See `LICENSE`.
+
+Skill versions distributed through ClawHub follow ClawHub's skill publication license rules.
