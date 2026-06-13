@@ -50,11 +50,43 @@ Collection depends on the local desktop client providing a logged-in page contex
 
 ## Download And Install
 
+### skills.sh
+
 If you use an Agent client that supports `skills.sh`, install it directly with the CLI:
 
 ```powershell
 npx skills add dragonknightk/ncm-listening-profile
 ```
+
+You can also open the [skills.sh page](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile) to inspect the current listing.
+
+### ClawHub
+
+After publication on ClawHub, OpenClaw users can install it with the native command:
+
+```powershell
+openclaw skills install ncm-listening-profile
+```
+
+You can also use the ClawHub CLI to install it into the current workspace's `skills/` directory:
+
+```powershell
+clawhub install ncm-listening-profile
+```
+
+### LobeHub
+
+After publication on LobeHub, install it with LobeHub Market CLI. This example installs it into Codex's global skills directory:
+
+```powershell
+npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
+```
+
+If you use another client, replace `--agent codex` with the right target, such as `open-claw`, `claude-code`, or `cursor`.
+
+These marketplace commands install the Skill files only. Before the first run, you still need to install the Python dependencies below.
+
+### GitHub Release
 
 If you only want the smaller package without development specs and archived change files, download the packaged `ncm-listening-profile.zip` from [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest).
 
@@ -106,6 +138,12 @@ By design, the scripts:
 - Keep diagnostics from recording full API responses, usernames, complete playlists, complete song lists, cookies, tokens, headers, or post data.
 
 This project is not an official NetEase Cloud Music project and is not affiliated with NetEase Cloud Music. It is intended for personal, local data organization and AI-assisted analysis. It should not be used for bulk collection, bypassing permissions, sharing data from someone else's account, or anything that violates terms of service.
+
+## Development And Release Branches
+
+- `main` is the release branch. It keeps only the files needed for user installation and marketplace publication.
+- `dev` is the development branch. It keeps complete development materials such as `openspec/` and `development_diary.md`.
+- Publish packages and marketplace releases to ClawHub/LobeHub from `main`; use `dev` for daily development and experiments.
 
 ## License
 

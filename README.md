@@ -50,11 +50,43 @@
 
 ## 下载和安装
 
+### skills.sh
+
 如果你使用支持 `skills.sh` 的 Agent 客户端，可以通过 CLI 直接安装：
 
 ```powershell
 npx skills add dragonknightk/ncm-listening-profile
 ```
+
+也可以打开 [skills.sh 页面](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile) 查看当前收录信息。
+
+### ClawHub
+
+发布到 ClawHub 后，OpenClaw 用户可以通过原生命令安装：
+
+```powershell
+openclaw skills install ncm-listening-profile
+```
+
+也可以使用 ClawHub CLI 直接安装到当前工作目录的 `skills/`：
+
+```powershell
+clawhub install ncm-listening-profile
+```
+
+### LobeHub
+
+发布到 LobeHub 后，可以通过 LobeHub Market CLI 安装。下面示例安装到 Codex 的全局 skills 目录：
+
+```powershell
+npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
+```
+
+如果你使用其他客户端，把 `--agent codex` 换成对应目标，例如 `open-claw`、`claude-code` 或 `cursor`。
+
+这些 marketplace 命令只负责安装 Skill 文件。首次运行前仍需要按下面步骤安装 Python 依赖。
+
+### GitHub Release
 
 如果你只想下载不含开发规格和归档文件的精简包，推荐从 [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest) 下载打包好的 `ncm-listening-profile.zip`。
 
@@ -106,6 +138,12 @@ macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换
 - diagnostics 不记录完整 API response、用户名、歌单全文、歌曲全文列表、cookies、token、headers 或 post data。
 
 本项目不是网易云音乐官方项目，也不与网易云音乐官方存在关联。它面向个人本机数据整理和 AI 辅助分析，不应用于批量采集、绕过权限、共享他人账号数据或任何违反服务条款的行为。
+
+## 开发和发布分支
+
+- `main` 是发布分支，只保留用户安装和 marketplace 发布需要的内容。
+- `dev` 是开发分支，保留 `openspec/`、`development_diary.md` 等完整开发材料。
+- 对外发布、打包和上传 ClawHub/LobeHub 时，从 `main` 发布；日常开发和实验在 `dev` 进行。
 
 ## 许可证
 
