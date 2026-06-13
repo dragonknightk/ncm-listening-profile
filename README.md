@@ -86,13 +86,15 @@ npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
 
 这些安装命令只负责安装 Skill 文件。首次运行前仍需要按下面步骤安装 Python 依赖。
 
-### GitHub Release
+### GitHub
 
-如果你只想下载不含开发规格和归档文件的精简包，推荐从 [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest) 下载打包好的 `ncm-listening-profile.zip`。
+如果你不使用 marketplace CLI，也可以直接克隆 `main` 分支：
 
-不要下载 GitHub 自动生成的 Source code 压缩包。Source code 压缩包会包含开发规格和归档文件，普通使用不需要这些内容。
+```powershell
+git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git
+```
 
-解压后，把整个 `ncm-listening-profile/` 目录放到你的 Agent 客户端会扫描的 skills 目录中。不同客户端的 skills 目录可能不同，请以你正在使用的客户端文档为准。
+下载后，把整个 `ncm-listening-profile/` 目录放到你的 Agent 客户端会扫描的 skills 目录中。不同客户端的 skills 目录可能不同，请以你正在使用的客户端文档为准。
 
 安装 Python 依赖：
 
@@ -143,10 +145,8 @@ macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换
 
 - `main` 是发布分支，只保留用户安装和 marketplace 发布需要的内容。
 - `dev` 是开发分支，保留 `openspec/`、`development_diary.md` 等完整开发材料。
-- 对外发布、打包和上传 ClawHub/LobeHub 时，从 `main` 发布；日常开发和实验在 `dev` 进行。
+- 对外发布和上传 ClawHub/LobeHub 时，从 `main` 发布；日常开发和实验在 `dev` 进行。
 
 ## 许可证
 
-本 GitHub 仓库使用 MIT License，见 `LICENSE`。
-
-通过 ClawHub 分发的 Skill 版本遵循 ClawHub 的 Skill 发布许可规则。
+本项目使用 MIT-0 License，见 `LICENSE`。

@@ -86,13 +86,15 @@ If you use another client, replace `--agent codex` with the right target, such a
 
 These installation commands install the Skill files only. Before the first run, you still need to install the Python dependencies below.
 
-### GitHub Release
+### GitHub
 
-If you only want the smaller package without development specs and archived change files, download the packaged `ncm-listening-profile.zip` from [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest).
+If you do not use a marketplace CLI, clone the `main` branch directly:
 
-Do not download GitHub's automatically generated Source code archives. They include development specs and archived change files that ordinary users do not need.
+```powershell
+git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git
+```
 
-After extracting it, place the entire `ncm-listening-profile/` directory into the skills directory scanned by your Agent client. Different clients may use different skills directories, so follow the documentation for the client you are using.
+After downloading it, place the entire `ncm-listening-profile/` directory into the skills directory scanned by your Agent client. Different clients may use different skills directories, so follow the documentation for the client you are using.
 
 Install Python dependencies:
 
@@ -143,10 +145,8 @@ This project is not an official NetEase Cloud Music project and is not affiliate
 
 - `main` is the release branch. It keeps only the files needed for user installation and marketplace publication.
 - `dev` is the development branch. It keeps complete development materials such as `openspec/` and `development_diary.md`.
-- Publish packages and marketplace releases to ClawHub/LobeHub from `main`; use `dev` for daily development and experiments.
+- Publish marketplace releases to ClawHub/LobeHub from `main`; use `dev` for daily development and experiments.
 
 ## License
 
-This GitHub repository uses the MIT License. See `LICENSE`.
-
-Skill versions distributed through ClawHub follow ClawHub's skill publication license rules.
+This project uses the MIT-0 License. See `LICENSE`.
