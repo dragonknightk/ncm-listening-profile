@@ -50,7 +50,13 @@
 
 ## 下载和安装
 
-推荐从 [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest) 下载打包好的 `ncm-listening-profile.zip`。
+如果你使用支持 `skills.sh` 的 Agent 客户端，可以通过 CLI 直接安装：
+
+```powershell
+npx skills add dragonknightk/ncm-listening-profile
+```
+
+如果你只想下载不含开发规格和归档文件的精简包，推荐从 [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest) 下载打包好的 `ncm-listening-profile.zip`。
 
 不要下载 GitHub 自动生成的 Source code 压缩包。Source code 压缩包会包含开发规格和归档文件，普通使用不需要这些内容。
 

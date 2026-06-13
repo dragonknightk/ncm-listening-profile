@@ -50,7 +50,13 @@ Collection depends on the local desktop client providing a logged-in page contex
 
 ## Download And Install
 
-It is recommended to download the packaged `ncm-listening-profile.zip` from [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest).
+If you use an Agent client that supports `skills.sh`, install it directly with the CLI:
+
+```powershell
+npx skills add dragonknightk/ncm-listening-profile
+```
+
+If you only want the smaller package without development specs and archived change files, download the packaged `ncm-listening-profile.zip` from [GitHub Releases](https://github.com/dragonknightk/ncm-listening-profile/releases/latest).
 
 Do not download GitHub's automatically generated Source code archives. They include development specs and archived change files that ordinary users do not need.
 
