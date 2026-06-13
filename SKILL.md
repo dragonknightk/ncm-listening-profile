@@ -1,6 +1,17 @@
 ---
 name: ncm-listening-profile
-description: 当用户想在 Windows 或 macOS 上采集网易云音乐桌面版听歌画像数据时使用。此 Skill 通过 CDP 启动或连接本机网易云音乐桌面客户端，在已登录页面上下文用网易云 `/api` 采集用户创建歌单、主歌单、最近一周听歌排行和所有时间听歌排行，写出 raw/result/csv/aggregate/log 文件，并给出两版分析 prompt；本 Skill 不在采集会话内做人格或画像分析。
+version: 1.0.2
+description: 当用户想在 Windows 或 macOS 上采集网易云音乐/NetEase Cloud Music 桌面版听歌画像数据、导出主歌单和听歌排行、生成本地 JSONL/CSV/aggregate 文件与 AI 分析 prompt 时使用。此 Skill 通过 CDP 启动或连接本机网易云音乐客户端，在已登录页面上下文用网易云 `/api` 采集用户创建歌单、主歌单、最近一周听歌排行和所有时间听歌排行；本 Skill 不在采集会话内做人格或画像分析。
+metadata:
+  openclaw:
+    homepage: https://github.com/dragonknightk/ncm-listening-profile
+    os:
+      - windows
+      - macos
+    requires:
+      anyBins:
+        - python
+        - python3
 ---
 
 # 网易云音乐听歌画像数据采集
