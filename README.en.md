@@ -1,26 +1,46 @@
+<div align="center">
+
 # ncm-listening-profile
 
-<p align="right">
-  <a href="README.md">简体中文</a> · <strong>English</strong>
+*Restrained data engineering, holding up an intimate portrait of your listening life.*
+
+<p>
+  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-1e293b?style=flat-square" alt="Version"></a>
+  <img src="https://img.shields.io/badge/metrics-10%20Domains%20%C2%B7%2082%20Indicators-0f172a?style=flat-square" alt="82 Metrics">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-334155?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/python-3.10%2B-334155?style=flat-square" alt="Python">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT--0-475569?style=flat-square" alt="License"></a>
 </p>
 
 <p>
-  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-334155" alt="Version 1.0.2"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-475569" alt="Platform Windows | macOS">
-  <img src="https://img.shields.io/badge/python-3.10%2B-475569" alt="Python 3.10+">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT--0-64748b" alt="License MIT-0"></a>
-  <a href="https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile"><img src="https://img.shields.io/badge/skills.sh-ncm--listening--profile-0f172a" alt="skills.sh"></a>
+  <a href="README.md">简体中文</a> · <strong>English</strong>
 </p>
+
+</div>
 
 Inside your NetEase Cloud Music account, there is a long, quiet memo to yourself: the songs you left in your main playlist, the songs you kept returning to over the past week, and the songs that never quite left the stage across all time.
 
-`ncm-listening-profile` collects the main playlist you confirm, your recent-week listening ranking, and your all-time listening ranking. It then generates local data files and analysis prompts that you can copy to an AI. You can hand them to an AI you trust and let it follow your long-term preferences, recent state, aesthetic imagery, and small anomalies toward a more specific picture of you.
+`ncm-listening-profile` collects the main playlist you confirm, your recent-week listening ranking, and your all-time listening ranking, generating local data files and ready-to-copy AI analysis prompts. You can hand them to an AI you trust and let it follow your long-term preferences, recent state, aesthetic imagery, and quiet anomalies toward a more specific picture of you.
 
-It puts the material in your hands, and leaves the right to interpret it with you. Whether to analyze it, who to give it to, and which files to share are all your decisions.
+---
+
+## A Story Begun with *Clair de Lune*
+
+While testing an AI's desktop computer-use capabilities, I asked it to open NetEase Cloud Music and play its favorite piece of music. It said it loved Debussy's *Clair de Lune* (《月光》), and by sheer serendipity, it opened my playlist.
+
+I asked it to scroll through the list carefully. Halfway down, it discovered *Clair de Lune* resting right there in my collection—"How fascinating," it wrote, the joy of stumbling upon a kindred spirit spilling straight out of its words.
+
+The next day, a thought crossed my mind: what if I let this companion with a similar aesthetic sense read my musical traces and tell me what kind of person I am?
+
+When we post photos or write updates on social platforms, we more or less curate ourselves and unconsciously cater to outside eyes. Listening to music, however, is deeply private and guided purely by personal taste. Every repeat loop, every skip, and every saved track stays honestly in the data.
+
+To make this portrait warmer and grounded in solid evidence, I extracted the complete playlist and ranking records from the local client, and designed **82 precomputed indicators across 10 analytical domains** covering time spans, short- versus long-term shifts, and edge preferences—packaging the whole workflow into this Skill.
+
+On the day all development was finished, I asked it to pick its single favorite track from my playlist again. It chose *Clair de Lune* once more.
+
+---
 
 ## Profile Snippet Example
-
-The snippets below are compressed examples generated from fictional data. They show the analysis style and do not come from real user data.
 
 > **Long-Term Undertone**  
 > Out of 260 songs in the main playlist, 71 also appear in the long-term Top 100; among the long-term Top 20, 12 have stayed in the main playlist for more than two years. Recurring title images gather around `night`, `river`, `home`, `cloud`, `light`, and `distance`, while track lengths lean toward medium and long arcs: many songs are not trying to deliver a chorus within three minutes, but to unfold a scene slowly.
@@ -37,127 +57,72 @@ The snippets below are compressed examples generated from fictional data. They s
 >
 > So this profile would not read you as "cold" or "fragile." More precisely, you seem serious and careful about intimacy. You are willing to keep what truly matters for a long time, but it has to remain at a distance that feels safe enough. Music here is both boundary and signal: it keeps softness for you, while filtering out understandings that are too loud, too fast, or too rough.
 
-## What It Does
+---
 
-- Starts or connects to the Windows `cloudmusic.exe` or macOS `NeteaseMusic.app` desktop client.
-- Calls NetEase Cloud Music `/api` endpoints from the context of the logged-in desktop client page.
-- Lists the playlists you created and asks you to choose one main playlist.
-- Collects the main playlist, recent-week listening ranking, and all-time listening ranking.
-- Writes local data files and provides two AI analysis prompts you can copy.
+## Clues in the Data: 10 Domains & 82 Indicators
 
-## Why Go Beyond Screenshots
+Alongside the three complete fact tables (`result/*.jsonl`), the script performs a local feature aggregation (`aggregate.json`), distilling scattered listening traces into **10 analytical domains and 82 statistical indicators and slice indexes** as a shared scale for the AI to observe and understand you:
 
-Sending long screenshots of your Top 100 to an LLM can produce quick impressions, but it usually stays on the surface of song titles and artist names. This skill turns scattered listening traces into a verifiable, multi-layered archive:
+| Domain | Indicators & Engineering | Analytical Lens |
+| :--- | :--- | :--- |
+| **1. Base Scale**<br>`counts` | Valid row counts across main playlist, recent-week, and all-time rankings | Evaluates listening breadth and cumulative collection volume |
+| **2. Duration Structure**<br>`durationStats` | Mean, median, min/max; `<3min` / `3~5min` / `>5min` bucket shares & longest/shortest Top 20 slices | Measures auditory patience: quick chorus hooks vs. slow-burning instrumental or emotional arcs |
+| **3. Time Series & Rhythm**<br>`addedAtStats` | Earliest-to-latest span; 5D aggregation across **year, year-month, calendar month, 24h hour, and weekday**; peak windows & first/last 20 anchors | Reconstructs multi-year aesthetic migrations, seasonal mood cycles, and late-night saving habits |
+| **4. Playback Concentration**<br>`rankingStats` | Total plays across both rankings; **CR1 / CR3 / CR10 (Top 1/3/10 play shares)**; head & tail Top/Bottom 20 slices | Observes attention distribution: wide roaming exploration vs. anchoring on a few core tracks |
+| **5. Multi-Set Overlap & Retention**<br>`overlapStats` | Pairwise intersections, three-way core overlap, **recent-week exclusive tracks**, **quietly retained playlist tracks** | Identifies multi-year spiritual anchors, old favorites resting deep in the list, and newly arriving sounds |
+| **6. Short/Long-Term Momentum**<br>`recentLongTermShiftStats` | Recent Top 20 penetration into all-time Top 100, core retention rate, **median absolute rank delta**, Top 10 risers/fallers | Acts as a thermometer measuring how far your recent state shifts from your long-term undertone |
+| **7. Head Artists & Long-Tail Singletons**<br>`artistStats` | Top 30 artists by track count & play volume; **singleton artists (`singletonArtists`, 1 saved track) count & sampling** | Captures both the core musicians shaping your foundation and one-song serendipities |
+| **8. Album Cohesion**<br>`albumStats` | Top 30 albums by collection frequency & play volume; **singleton album count & sampling** | Reveals the balance between full-album immersion and single-track curation |
+| **9. Lexical & Script Profile**<br>`lexicalStats` | Top 50 tokens across titles, albums, and artists; **CJK / Kana / ASCII / symbol-heavy title** counts | Distills recurring aesthetic motifs (e.g., `night`, `light`) and language distributions |
+| **10. Multi-Angle Drill-Down Indexes**<br>`sampleIndexes` | 10 sets of Top/Bottom 20 entity slices sorted by order, timestamp, duration extremes, and play counts | Provides ready-to-cite track anchors for every portrait insight |
 
-- **Full Timeline Instead of a Single Screen**: Beyond the recent-week and all-time rankings, it collects your complete main playlist along with **exact timestamps of when each track was added (`addedAt`)** and **millisecond track durations (`durationMs`)**. Whether a song has stayed with you for three years or was added late one night last week, the timeline preserves it.
-- **Precomputed 82 Metrics Across 10 Themes (`aggregate.json`)**: Before you hand the data to an AI, the local script precomputes cross-ranking overlaps, rank shifts between recent and all-time lists, duration distributions, year/month/hour addition patterns, playback concentration (Top 1 / Top 3 / Top 10 shares), recurring lexical tokens, and singleton artist/album samples. This frees the model from counting rows or guessing ratios on the fly, significantly reducing hallucinations.
-- **Collection Decoupled from Interpretation**: The skill writes clean local fact tables (`result/*.jsonl`) and neutral indexes without locking you into rigid scoring templates or a single model. You can take the same dataset to any AI you trust and explore different angles over time.
+---
 
-## Environment
+## Getting Started
 
-Requires Windows or macOS, Python 3.10+, an Agent Skills-capable client, and the NetEase Cloud Music desktop client.
+Requires **Windows** or **macOS**, **Python 3.10+**, the NetEase Cloud Music desktop client, and an Agent Skills-capable client.
 
-Verified environments:
-
-- Windows: verified through real collection runs on Windows 10 with `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`, and on higher Windows systems with newer NetEase Cloud Music desktop clients.
-- macOS: verified through a real collection run on `macOS 26.3.1 arm64` with `NeteaseMusicDesktop/3.1.7.3283`.
-
-Collection depends on the local desktop client providing a logged-in page context and `9222` CDP. Data compatibility mainly depends on the NetEase server API response shape; the operating system and client version are usually not the main risk unless they affect client launch, CDP exposure, login state, or page-context execution. If collection fails, check `log/collection_diagnostics.json` first.
-
-## Download And Install
-
-### skills.sh
-
-If you use an Agent client that supports `skills.sh`, install it directly with the CLI:
+**1. Install Skill**
 
 ```powershell
 npx skills add dragonknightk/ncm-listening-profile
 ```
 
-You can also open the [skills.sh page](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile) to inspect the current listing.
+<details>
+<summary>Install via ClawHub / LobeHub / GitHub & First-Run Setup</summary>
 
-### ClawHub
+<br>
 
-OpenClaw users can install it with the native command:
+- **OpenClaw / ClawHub**: `openclaw skills install ncm-listening-profile` or `clawhub install ncm-listening-profile`
+- **LobeHub CLI**: `npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g` (replace `codex` with `claude-code`, `cursor`, etc.)
+- **GitHub Clone**: `git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git`
+- **skills.sh Listing**: [View page](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile)
 
-```powershell
-openclaw skills install ncm-listening-profile
-```
-
-You can also use the ClawHub CLI to install it into the current workspace's `skills/` directory:
-
-```powershell
-clawhub install ncm-listening-profile
-```
-
-### LobeHub
-
-Install it with LobeHub Market CLI. This example installs it into Codex's global skills directory:
+Before the first run, install the lightweight Python dependencies and run the environment check (use `python3` on macOS):
 
 ```powershell
-npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
-```
-
-If you use another client, replace `--agent codex` with the right target, such as `open-claw`, `claude-code`, or `cursor`.
-
-These installation commands install the Skill files only. Before the first run, you still need to install the Python dependencies below.
-
-### GitHub
-
-If you do not use a marketplace CLI, clone the `main` branch directly:
-
-```powershell
-git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git
-```
-
-After downloading it, place the entire `ncm-listening-profile/` directory into the skills directory scanned by your Agent client. Different clients may use different skills directories, so follow the documentation for the client you are using.
-
-Install Python dependencies:
-
-```powershell
-cd <skills-dir>\ncm-listening-profile
 python -m pip install -r scripts/requirements.txt
-```
-
-Check the environment:
-
-```powershell
 python scripts/collect_ncm_profile.py --check
 ```
 
-On macOS, if `python` does not point to `Python 3.10+`, use `python3` in the commands above.
+</details>
 
-## Usage
+**2. Invoke Collection**
 
-Invoke this skill in your Agent client, for example:
+In your Agent client, enter:
 
 ```text
 使用 $ncm-listening-profile 采集我的网易云音乐听歌画像数据。
 ```
 
-### 3-Step Workflow Preview
-
-1. **Check Environment & Choose Main Playlist**  
-   The skill checks your local environment, launches or connects to the NetEase Cloud Music desktop client, and lists the playlists you created so you can pick one as your baseline main playlist:
-   ```text
-   下面是你创建的歌单。主歌单会作为这次画像数据的对照基准(只能选一个喔www)。你可以回复编号或歌单名。
-
-   编号  歌单名              曲数
-   1     我喜欢的音乐        260
-   2     夜路与长途车        48
-   3     2024 冬             31
-   ```
-2. **Local Collection & 82-Metric Aggregation**  
-   Once you reply with a number or playlist name, the script collects your main playlist, recent-week ranking, and all-time ranking within seconds, writing cleaned fact tables and precomputed metrics to `outputs/YYYYMMDD-HHMMSS/`.
-3. **Get Run Path & Two Analysis Prompts**  
-   After collection finishes, the skill outputs the local run directory path along with two ready-to-copy prompts (**Minimal Prompt** and **Guided Prompt**). Copy your preferred version to any AI you trust to start the analysis.
+The Skill connects to your local NetEase Cloud Music desktop client, lists the playlists you created so you can pick a baseline main playlist, completes local collection and indicator aggregation within seconds (saved under `outputs/YYYYMMDD-HHMMSS/`), and outputs **two analysis prompts** pre-filled with your local paths.
 
 <details>
-<summary><strong>Preview: Minimal Prompt</strong> (Leaves more room for open-ended discovery and surprise)</summary>
+<summary>Preview Built-In Analysis Prompts (Minimal / Guided)</summary>
 
 <br>
 
-> Best for users already comfortable conversing with AI, or when you want to keep a sense of mystery. It gives minimal direction and simply hands over the data, letting the model approach, observe, and interpret you freely.
+**Minimal Prompt** · *Leaves generous whitespace for open-ended discovery and surprise*
 
 ```text
 以下是我的网易云音乐数据：
@@ -170,14 +135,7 @@ Invoke this skill in your Agent client, for example:
 请结合这些数据，详细分析我是一个怎样的人。
 ```
 
-</details>
-
-<details>
-<summary><strong>Preview: Guided Prompt</strong> (Slow, multi-layered reading across long-term taste, recent shifts, and quiet anomalies)</summary>
-
-<br>
-
-> Best when you want to be carefully seen. It guides the AI to slow down and read you through long-term preferences, recent emotional shifts, recurring imagery, life rhythms, and small edge-case details rather than producing a generic music taste summary.
+**Guided Prompt** · *Guides the AI to slow down and read you through long-term preferences, recent shifts, imagery, and quiet anomalies*
 
 ```text
 以下是我的网易云音乐数据：
@@ -207,42 +165,19 @@ Invoke this skill in your Agent client, for example:
 
 </details>
 
-## Output Files
+<details>
+<summary>Verified Environments, Local Storage & Branches</summary>
 
-Collection results are written to `outputs/YYYYMMDD-HHMMSS/`. For AI analysis, you will usually use `aggregate/aggregate.json` and `result/*.jsonl`; `csv/` is convenient for manual inspection, while `raw/` and `log/` are mainly for troubleshooting.
+<br>
 
-Treat `outputs/` as private data. Do not commit it to a public repository, and do not share it casually.
+- **Verified Environments**: Windows 10/11 (`NetEase Cloud Music 3.0.0 Beta+`) and macOS arm64 (`NeteaseMusicDesktop 3.1.7+`). Collection runs in the logged-in desktop client page context via local `127.0.0.1:9222` CDP; run logs are written to `log/collection_diagnostics.json`.
+- **Local Storage**: All results are saved locally under `outputs/YYYYMMDD-HHMMSS/`, and diagnostic logs record only phase status and structured counts. This is an independent open-source project for personal local data organization and AI-assisted exploration.
+- **Branches**: `main` is the streamlined release branch; `dev` retains complete development notes including `openspec/` and `development_diary.md`.
 
-## Privacy And Boundaries
+</details>
 
-This project is designed around local collection, local file output, and user-controlled sharing.
+---
 
-By design, the scripts:
-
-- Do not ask you to paste cookies, tokens, passwords, request headers, or request bodies.
-- Do not include logic for uploading collected results to a remote server.
-- Have the Python process connect only to a local CDP endpoint, such as `127.0.0.1:9222`.
-- Make NetEase Cloud Music business API requests inside the logged-in client page context.
-- Keep diagnostics from recording full API responses, usernames, complete playlists, complete song lists, cookies, tokens, headers, or post data.
-
-This project is not an official NetEase Cloud Music project and is not affiliated with NetEase Cloud Music. It is intended for personal, local data organization and AI-assisted analysis. It should not be used for bulk collection, bypassing permissions, sharing data from someone else's account, or anything that violates terms of service.
-
-## Origin: *Clair de Lune*
-
-This project started with a small coincidence.
-
-While testing desktop computer-use capabilities with an AI, I asked it to open NetEase Cloud Music and play its favorite piece of music. It said it loved Debussy's *Clair de Lune* (《月光》). Unable to locate the global search bar, it ended up looking at my playlist instead. I asked it to scroll through the playlist more carefully—and halfway down, it discovered *Clair de Lune* sitting right there in my collection. The joy of stumbling upon a kindred spirit spilled straight out of its reply.
-
-That moment sparked the idea: music taste is deeply personal and unguarded. Unlike social profiles, we rarely pretend to be someone else inside our own playlists—what we love and what we outgrow are quietly recorded in the data. Moving from fragile UI automation to local CDP and in-page client APIs across six iterations, I built this skill with cross-platform support, 82 precomputed metrics across 10 themes, and two analysis prompts to turn those traces into a portrait.
-
-Fittingly, after all the code was finished, I asked the AI to blindly pick one favorite track from my playlist again. It chose *Clair de Lune* a second time.
-
-## Development And Release Branches
-
-- `main` is the release branch. It keeps only the files needed for user installation and marketplace publication.
-- `dev` is the development branch. It keeps complete development materials such as `openspec/` and `development_diary.md`.
-- Publish marketplace releases to ClawHub/LobeHub from `main`; use `dev` for daily development and experiments.
-
-## License
-
-This project uses the MIT-0 License. See `LICENSE`.
+<p align="center">
+  <sub>MIT-0 License · May you meet yourself anew inside your own playlists.</sub>
+</p>

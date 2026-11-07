@@ -1,26 +1,46 @@
+<div align="center">
+
 # ncm-listening-profile
 
-<p align="right">
-  <strong>简体中文</strong> · <a href="README.en.md">English</a>
+*用最克制的数据工程，托举最感性的听歌画像。*
+
+<p>
+  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-1e293b?style=flat-square" alt="Version"></a>
+  <img src="https://img.shields.io/badge/metrics-10%20Domains%20%C2%B7%2082%20Indicators-0f172a?style=flat-square" alt="82 Metrics">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-334155?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/python-3.10%2B-334155?style=flat-square" alt="Python">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT--0-475569?style=flat-square" alt="License"></a>
 </p>
 
 <p>
-  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-334155" alt="Version 1.0.2"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-475569" alt="Platform Windows | macOS">
-  <img src="https://img.shields.io/badge/python-3.10%2B-475569" alt="Python 3.10+">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT--0-64748b" alt="License MIT-0"></a>
-  <a href="https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile"><img src="https://img.shields.io/badge/skills.sh-ncm--listening--profile-0f172a" alt="skills.sh"></a>
+  <strong>简体中文</strong> · <a href="README.en.md">English</a>
 </p>
+
+</div>
 
 你的网易云里藏着一份很长的自我备忘录：主歌单里留下的歌，最近一周反复回来的歌，所有时间里一直没有退场的歌。
 
 `ncm-listening-profile` 会采集你确认的主歌单、最近一周听歌排行和所有时间听歌排行，生成本地数据文件和可复制给 AI 的分析 prompt。你可以把它交给自己信任的 AI，让它沿着长期偏好、近期状态、审美意象和细小异常，慢慢靠近一个更具体的你。
 
-它把材料放到你手里，也把解释权留给你。最终要不要分析、交给谁分析、分享哪些文件，都由你决定。
+---
+
+## 一首《月光》开启的故事
+
+测试 AI 的桌面操作能力时，我让它打开网易云，放一首它最喜欢的音乐。它说喜欢德彪西的《月光》（*Clair de Lune*），阴差阳错间，点开了我的歌单。
+
+我让它顺着歌单认真往下翻。翻着翻着，它发现我的歌单里也躺着那首《月光》——“真有意思”，那种偶遇知音的巧合与喜悦，一下子从它的文字里冒了出来。
+
+第二天我突然想：要不让这个审美和我接近的家伙，顺着这些音乐痕迹看看我是一个怎样的人？
+
+平时在社交平台上发照片、写文字，我们多少会修饰自己，或下意识迎合外界的目光；唯独听音乐这件事太私密了，完全由个人的品味指引。每一次单曲循环、每一次切歌与收藏，都会诚实地留在数据里。
+
+为了让这份画像更有温度、更有据可依，我从本机客户端抽取出完整的歌单与排行明细，围绕时间跨度、长短期变化和边缘偏好设计了 **10 个分析域、82 项预计算指标**，做成了这个 Skill 分享出来。
+
+全部开发做完那天，我又让它在我的歌单里挑一首最爱听的曲子。它选的依然是《月光》。
+
+---
 
 ## 画像片段示例
-
-下面是虚构数据生成的压缩片段，只展示分析风格，不来自真实用户数据。
 
 > **长期底色**  
 > 主歌单 260 首里，有 71 首也出现在长期 Top 100；长期前 20 里，有 12 首已经在主歌单里待了两年以上。反复出现的曲名意象集中在 `night`、`river`、`home`、`cloud`、`light`、`distance`，歌长也偏向中长段落：很多歌不是为了三分钟内给出副歌，而是慢慢铺开一个场景。
@@ -37,127 +57,72 @@
 >
 > 所以这份画像不会把你读成“冷淡”或“脆弱”。更准确地说，你像是一个对亲密很认真、也很谨慎的人。你愿意把真正重要的东西留很久，但它必须待在一个足够安全的距离里。音乐在这里像边界，也像暗号：它替你保管柔软，同时筛掉那些太响、太快、太粗糙的理解。
 
-## 做什么
+---
 
-- 启动或连接 Windows 版 `cloudmusic.exe` 或 macOS 版 `NeteaseMusic.app`。
-- 在已登录的网易云音乐客户端页面上下文里请求网易云 `/api`。
-- 列出你创建的歌单，并让你选择一个主歌单。
-- 采集主歌单、最近一周听歌排行和所有时间听歌排行。
-- 写出本地数据文件，并给出两版可复制给 AI 的分析 prompt。
+## 藏在数据里的线索：10 大分析域与 82 项指标
 
-## 为什么不止于“截图给 AI”
+在生成主歌单、最近一周排行与所有时间排行三份完整明细表（`result/*.jsonl`）的同时，脚本会在本地预先完成一次特征聚合（`aggregate.json`），将散落的听歌轨迹沉淀为 **10 个分析域、82 项统计指标与切片索引**，作为 AI 观察与理解你的标尺：
 
-直接把听歌排行的长截图发给大模型也能聊出几句感想，但往往停留在表面的歌手和歌名联想。这个项目做的是把零散痕迹整理成有纵深、可核对的赛博档案：
+| 分析域 (Domain) | 核心指标与特征设计 (Indicators & Engineering) | 投射的画像观察维度 (Analytical Lens) |
+| :--- | :--- | :--- |
+| **1. 规模基数**<br>`counts` | 主歌单、近一周排行、全时段排行有效样本行数 | 评估听歌广度与日常收藏的沉淀体量 |
+| **2. 曲长结构**<br>`durationStats` | 均值、中位数、极值；`<3min` / `3~5min` / `>5min` 分桶占比及最长/最短 Top 20 切片 | 衡量听觉耐心阈值：偏爱短促直接的副歌，还是慢热铺陈的长段落 |
+| **3. 时间序列与节律**<br>`addedAtStats` | 首末入单跨度；按**年份、年月、自然月、24 小时、星期**五维聚合；高峰时段与首末 20 首锚点 | 还原数年间的审美迁徙轨迹、季节性情绪周期，以及深夜加歌的生活节律 |
+| **4. 播放集中度**<br>`rankingStats` | 双榜总播量；**CR1 / CR3 / CR10（Top 1/3/10 播放占比）**；双榜首尾 Top/Bottom 20 切片 | 观察注意力分配方式：广泛漫游探索，或是在几首核心旋律里反复驻留 |
+| **5. 多集交叉与留存**<br>`overlapStats` | 主歌单与双榜两两交集、三方核心交集、**近一周独有新曲**、**主歌单静默留存曲目数** | 识别陪伴多年的精神锚点、静置在歌单深处的旧爱，以及近期闯入的新声 |
+| **6. 长短期动量漂移**<br>`recentLongTermShiftStats` | 近一周 Top 20 在长期榜渗透率、长期核心近期留存率、**排名变动绝对值中位数**、升降 Top 10 | 像温度计一样度量“近期状态”相对“长期底色”的波动幅度与方向 |
+| **7. 艺人头部与长尾孤品**<br>`artistStats` | 三表艺人曲数/播放量 Top 30；**单曲孤品艺人（`singletonArtists`，仅存 1 首）计数与抽样** | 既看撑起听歌底色的核心音乐人，也捕捉那些“因一首歌心动一次”的瞬间 |
+| **8. 专辑聚合度**<br>`albumStats` | 专辑收藏频次、双榜播放量 Top 30；**单曲孤品专辑计数与抽样** | 呈现整张专辑沉浸聆听与单曲沙里淘金之间的偏好比例 |
+| **9. 文本词频与语种字符**<br>`lexicalStats` | 歌名/专辑/艺人分词词频 Top 50；**汉字(CJK) / 假名(Kana) / 英文(ASCII) / 高密度符号曲名**统计 | 从高频浮现的字词（如 `night`、`light`）与语种分布里提炼审美意象 |
+| **10. 多维下钻样本索引**<br>`sampleIndexes` | 按收藏顺序、入单早晚、曲长极值、播放量正逆序排列的 10 组 Top/Bottom 20 实体切片 | 为每一处画像推论提供即取即用的具体曲目锚点 |
 
-- **完整的时间线，而非静态的一屏**：除了最近一周和所有时间双榜，还会拉取完整主歌单、**每首歌加入歌单的精确时间戳（`addedAt`）**以及**毫秒级曲长（`durationMs`）**。哪首歌陪了你三年、哪批歌是某个深夜连续加进来的，数据里都有迹可循。
-- **预计算 10 大主题、82 项统计指标（`aggregate.json`）**：在交给 AI 之前，本地脚本会预先算好三榜重合度、近期与长期的排名升降、曲长分布、加歌年代/月份/深夜时段分布、播放集中度（Top 1 / Top 3 / Top 10 占比）、高频词频以及“只出现过一次”的单曲孤品样本。AI 不必临场数行或心算比例，大幅减少统计幻觉，把注意力留给真正的观察。
-- **数据采集与画像解读解耦**：采集过程不内置死板的打分模板，也不绑定特定大模型。同一份干净的本地数据，你可以随时交给不同 AI，从不同切面重新认识自己。
+---
 
-## 环境
+## 开始使用
 
-需要 Windows 或 macOS、Python 3.10+、支持 Agent Skills 的客户端，以及网易云音乐桌面版客户端。
+需要 **Windows** 或 **macOS**、**Python 3.10+**、网易云音乐桌面端，以及支持 Agent Skills 的客户端。
 
-已验证环境：
-
-- Windows：已在 Windows 10 + `NetEase Cloud Music 3.0.0 Beta 64-bit / Build 201967 / Patch dd70f35`，以及更高 Windows 系统和更新网易云桌面客户端上真实采集通过。
-- macOS：已在 `macOS 26.3.1 arm64` + `NeteaseMusicDesktop/3.1.7.3283` 上真实采集通过。
-
-采集依赖本机客户端提供的已登录页面上下文和 `9222` CDP。数据结构兼容性主要取决于网易云服务端 API；客户端或系统版本通常不是主要风险，除非它影响客户端启动、CDP 暴露、登录态或页面上下文执行。失败时先看 `log/collection_diagnostics.json`。
-
-## 下载和安装
-
-### skills.sh
-
-如果你使用支持 `skills.sh` 的 Agent 客户端，可以通过 CLI 直接安装：
+**1. 安装 Skill**
 
 ```powershell
 npx skills add dragonknightk/ncm-listening-profile
 ```
 
-也可以打开 [skills.sh 页面](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile) 查看当前收录信息。
+<details>
+<summary>使用 ClawHub / LobeHub / GitHub 安装与首次环境初始化</summary>
 
-### ClawHub
+<br>
 
-OpenClaw 用户可以通过原生命令安装：
+- **OpenClaw / ClawHub**：`openclaw skills install ncm-listening-profile` 或 `clawhub install ncm-listening-profile`
+- **LobeHub CLI**：`npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g`（可将 `codex` 替换为 `claude-code`、`cursor` 等）
+- **GitHub 克隆**：`git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git`
+- **skills.sh 收录页**：[查看详情](https://www.skills.sh/dragonknightk/ncm-listening-profile/ncm-listening-profile)
 
-```powershell
-openclaw skills install ncm-listening-profile
-```
-
-也可以使用 ClawHub CLI 直接安装到当前工作目录的 `skills/`：
-
-```powershell
-clawhub install ncm-listening-profile
-```
-
-### LobeHub
-
-可以通过 LobeHub Market CLI 安装。下面示例安装到 Codex 的全局 skills 目录：
+首次运行前，在 Skill 目录下安装轻量 Python 依赖并自检（macOS 可用 `python3`）：
 
 ```powershell
-npx -y @lobehub/market-cli skills install ncm-listening-profile --agent codex -g
-```
-
-如果你使用其他客户端，把 `--agent codex` 换成对应目标，例如 `open-claw`、`claude-code` 或 `cursor`。
-
-这些安装命令只负责安装 Skill 文件。首次运行前仍需要按下面步骤安装 Python 依赖。
-
-### GitHub
-
-如果你不使用 marketplace CLI，也可以直接克隆 `main` 分支：
-
-```powershell
-git clone --branch main --depth 1 https://github.com/dragonknightk/ncm-listening-profile.git
-```
-
-下载后，把整个 `ncm-listening-profile/` 目录放到你的 Agent 客户端会扫描的 skills 目录中。不同客户端的 skills 目录可能不同，请以你正在使用的客户端文档为准。
-
-安装 Python 依赖：
-
-```powershell
-cd <skills-dir>\ncm-listening-profile
 python -m pip install -r scripts/requirements.txt
-```
-
-检查环境：
-
-```powershell
 python scripts/collect_ncm_profile.py --check
 ```
 
-macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换成 `python3`。
+</details>
 
-## 使用
+**2. 唤醒采集**
 
-在你的 Agent 客户端中调用这个 skill，例如：
+在你的 Agent 客户端里输入：
 
 ```text
 使用 $ncm-listening-profile 采集我的网易云音乐听歌画像数据。
 ```
 
-### 3 步交互流程预览
-
-1. **检查环境并列出歌单**  
-   Skill 会先检查本机环境、启动或连接网易云音乐桌面端，并把你创建的歌单整理成编号表，让你确认一个作为对照基准的主歌单：
-   ```text
-   下面是你创建的歌单。主歌单会作为这次画像数据的对照基准(只能选一个喔www)。你可以回复编号或歌单名。
-
-   编号  歌单名              曲数
-   1     我喜欢的音乐        260
-   2     夜路与长途车        48
-   3     2024 冬             31
-   ```
-2. **本机采集与预计算聚合**  
-   回复编号或歌单名后，脚本会在几秒内完成主歌单、最近一周排行与所有时间排行的采集，并自动在 `outputs/YYYYMMDD-HHMMSS/` 下写出清洗后的事实表与 82 项预计算指标。
-3. **获取路径与双版本分析 Prompt**  
-   采集完成后，Skill 会输出本次 run 目录路径，以及自动填好路径的**极简版 Prompt** 和**引导版 Prompt**。你可以把喜欢的版本复制给任意信任的 AI 开始分析。
+Skill 会自动连接本机网易云客户端，列出你创建的歌单供你选定一个主歌单基准，几秒内完成本地采集与指标聚合（保存在 `outputs/YYYYMMDD-HHMMSS/`），并生成填入本地路径的**两版分析 Prompt**。
 
 <details>
-<summary><strong>点击预览：内置「极简版 Prompt」</strong>（留白更多，适合期待意外感和自由靠近）</summary>
+<summary>预览内置的两版分析 Prompt（极简版 / 引导版）</summary>
 
 <br>
 
-> 适合已经很熟悉和 AI 对话的人，也适合你想保留一点未知感和神秘感的时候。它不给 AI 太多方向，只把数据交出去，让对方自己靠近、观察和理解你。适合期待更自由、更意外、更像一次重新相识的分析。
+**极简版 Prompt** · *留白充足，适合期待自由靠近、像一次重新相识的分析*
 
 ```text
 以下是我的网易云音乐数据：
@@ -170,14 +135,7 @@ macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换
 请结合这些数据，详细分析我是一个怎样的人。
 ```
 
-</details>
-
-<details>
-<summary><strong>点击预览：内置「引导版 Prompt」</strong>（细腻慢读，适合希望被认真看见与多维拆解）</summary>
-
-<br>
-
-> 适合你希望被认真看见的时候。它会引导 AI 慢下来，从长期偏好、近期状态、审美意象、生活节奏和细小异常里理解你，而不是只给出一份音乐品味总结。适合想要更稳定、更细腻、更有温度回答的场景。
+**引导版 Prompt** · *引导 AI 慢下来，顺着长期偏好、近期状态、审美意象与细小异常认真看见你*
 
 ```text
 以下是我的网易云音乐数据：
@@ -207,42 +165,19 @@ macOS 如果 `python` 不是 `Python 3.10+`，把上面命令里的 `python` 换
 
 </details>
 
-## 输出文件
+<details>
+<summary>运行环境、本地存储与分支说明</summary>
 
-采集结果会写到 `outputs/YYYYMMDD-HHMMSS/`。做 AI 分析时通常使用 `aggregate/aggregate.json` 和 `result/*.jsonl`；`csv/` 适合自己打开检查，`raw/` 和 `log/` 主要用于排查问题。
+<br>
 
-请把 `outputs/` 视为私人数据，不要提交到公开仓库，也不要随意分享。
+- **已验证环境**：Windows 10/11（`NetEase Cloud Music 3.0.0 Beta+`）与 macOS arm64（`NeteaseMusicDesktop 3.1.7+`）。采集通过本机 `127.0.0.1:9222` CDP 在已登录客户端页面上下文内执行；运行日志位于 `log/collection_diagnostics.json`。
+- **本地存储**：所有采集结果保存在本地 `outputs/YYYYMMDD-HHMMSS/` 目录下，诊断日志仅记录阶段状态与结构化统计。本项目为个人独立开源作品，面向个人本机数据整理与 AI 辅助探索。
+- **分支说明**：`main` 为精简发布分支；`dev` 保留 `openspec/` 与 `development_diary.md` 等完整研发手记。
 
-## 隐私和边界
+</details>
 
-这个项目按“本机采集、本机落盘、用户自行决定后续分享”的方式设计。
+---
 
-脚本设计上：
-
-- 不要求你粘贴 cookie、token、密码、请求头或请求体。
-- 不包含上传采集结果到远程服务器的逻辑。
-- Python 进程只直接连接本机 CDP endpoint，例如 `127.0.0.1:9222`。
-- 网易云业务 API 请求在已登录客户端页面上下文中执行。
-- diagnostics 不记录完整 API response、用户名、歌单全文、歌曲全文列表、cookies、token、headers 或 post data。
-
-本项目不是网易云音乐官方项目，也不与网易云音乐官方存在关联。它面向个人本机数据整理和 AI 辅助分析，不应用于批量采集、绕过权限、共享他人账号数据或任何违反服务条款的行为。
-
-## 缘起：一首《月光》
-
-这个项目始于一次很小的巧合。
-
-最开始只是在测试 AI 的桌面操作能力，让它用网易云放一首最喜欢的音乐。它说想放德彪西的《月光》（*Clair de Lune*），但因为没找到全局搜索框，只看到了我的歌单。我让它顺着歌单认真往下翻——翻着翻着，它发现我的歌单里也藏着那首《月光》。那种“在漫长列表里偶遇知音”的喜悦，一下子从它的文字里冒了出来。
-
-也是从那一刻起我意识到：听歌是私密的审美，不需要装作什么人来迎合谁，喜欢与不喜欢都会诚实地留在痕迹里。为了不靠粗糙的长截图、也不受制于易变的界面控件，我和 AI 一路从 UI 自动化深挖到本地 CDP 与客户端内建 API，最终把跨平台采集、10 个主题共 82 项预计算指标和两版分析 Prompt 打磨成了这个 Skill。
-
-好玩的是，全部开发做完后，我又让它在我的歌单里盲挑一首最爱听的曲子。它选的依然是《月光》。
-
-## 开发和发布分支
-
-- `main` 是发布分支，只保留用户安装和 marketplace 发布需要的内容。
-- `dev` 是开发分支，保留 `openspec/`、`development_diary.md` 等完整开发材料。
-- 对外发布和上传 ClawHub/LobeHub 时，从 `main` 发布；日常开发和实验在 `dev` 进行。
-
-## 许可证
-
-本项目使用 MIT-0 License，见 `LICENSE`。
+<p align="center">
+  <sub>MIT-0 License · 愿你在自己的歌单里，重新遇见自己。</sub>
+</p>
