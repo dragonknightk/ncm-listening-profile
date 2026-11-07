@@ -1,11 +1,11 @@
-<div align="center">
-
 # ncm-listening-profile
 
-*用最克制的数据工程，托举最感性的听歌画像。*
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dragonknightk/ncm-listening-profile/dev/assets/banner.png" width="100%" alt="ncm-listening-profile banner">
+</p>
 
 <p>
-  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-1e293b?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/release-v1.0.2-1e293b?style=flat-square" alt="Release v1.0.2"></a>
   <img src="https://img.shields.io/badge/metrics-10%20Domains%20%C2%B7%2082%20Indicators-0f172a?style=flat-square" alt="82 Metrics">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-334155?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/python-3.10%2B-334155?style=flat-square" alt="Python">
@@ -15,8 +15,6 @@
 <p>
   <strong>简体中文</strong> · <a href="README.en.md">English</a>
 </p>
-
-</div>
 
 你的网易云里藏着一份很长的自我备忘录：主歌单里留下的歌，最近一周反复回来的歌，所有时间里一直没有退场的歌。
 

@@ -1,11 +1,11 @@
-<div align="center">
-
 # ncm-listening-profile
 
-*Restrained data engineering, holding up an intimate portrait of your listening life.*
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dragonknightk/ncm-listening-profile/dev/assets/banner.png" width="100%" alt="ncm-listening-profile banner">
+</p>
 
 <p>
-  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/version-1.0.2-1e293b?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/dragonknightk/ncm-listening-profile/releases"><img src="https://img.shields.io/badge/release-v1.0.2-1e293b?style=flat-square" alt="Release v1.0.2"></a>
   <img src="https://img.shields.io/badge/metrics-10%20Domains%20%C2%B7%2082%20Indicators-0f172a?style=flat-square" alt="82 Metrics">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-334155?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/python-3.10%2B-334155?style=flat-square" alt="Python">
@@ -15,8 +15,6 @@
 <p>
   <a href="README.md">简体中文</a> · <strong>English</strong>
 </p>
-
-</div>
 
 Inside your NetEase Cloud Music account, there is a long, quiet memo to yourself: the songs you left in your main playlist, the songs you kept returning to over the past week, and the songs that never quite left the stage across all time.
 
